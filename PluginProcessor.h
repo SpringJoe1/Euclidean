@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <JuceHeader.h>
 #include "EuclideanRythm.h"
 
@@ -68,26 +69,33 @@ private:
 
     //==============================================================================
 
+    void convertBPMToTime();
     // function that returns the parameter layout of the audio processor value tree state
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
 
     //==============================================================================
 
+    juce::AudioPlayHead* playHead;
+    juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
+
+
     EuclideanRythm euclideanRythm;
     int index;
 
+    // sample rate
+    float rate;
     int noteNumber = 48;
     int midiChannel = 10;
-
-    float speed;
-    int currentNote, lastNoteValue;
-    int time;
-    float rate;
-    juce::SortedSet<int> notes;
-    int rythm[4] = { 1,0,1,0 };
-    bool suena;
     int velocity;
+
+    // duracion de las notas (blanca, corchea, etc)
+    int figureStep, figureNote;
+    // duración de las notas en número de samples
+    int stepDuration, noteDuration;
+    // contadores para llevar cuanto lleva sonando el step y la nota actual (en número de samples)
+    int timeStep, timeNote;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v3AudioProcessor)
 };
