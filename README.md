@@ -1,1 +1,1 @@
-# Euclydian-Sequencer
+# Euclidean-Sequencer
