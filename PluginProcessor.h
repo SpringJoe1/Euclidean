@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <JuceHeader.h>
+#include <math.h> 
 #include "EuclideanRythm.h"
 
 using namespace std;
@@ -70,6 +71,13 @@ private:
     //==============================================================================
 
     void convertBPMToTime();
+    // funcion que saca el angulo de la aguja a partir del sample en el que estamos
+    float getAngleFromCurrentSample();
+    // funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
+    // angulo de la aguja
+    int getIndexFromAngle();
+    // funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
+    int getCurrentSamplesFromAngle();
     // function that returns the parameter layout of the audio processor value tree state
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
@@ -82,6 +90,7 @@ private:
 
     EuclideanRythm euclideanRythm;
     int index;
+    float anguloAguja;
 
     // sample rate
     float rate;
@@ -95,6 +104,10 @@ private:
     int stepDuration, noteDuration;
     // contadores para llevar cuanto lleva sonando el step y la nota actual (en número de samples)
     int timeStep, timeNote;
+    // total de samples de un compás para calcular por donde va la aguja
+    int numSamplesPerBar;
+    // número del sample que acabamos de procesar en el compas
+    int currentSampleInBar;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v3AudioProcessor)

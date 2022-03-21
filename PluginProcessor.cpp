@@ -165,8 +165,13 @@ void Seq_v3AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     rate = static_cast<float> (sampleRate); 
     velocity = 127;
 
+    // TODO cambiar el 4
     euclideanRythm = EuclideanRythm(4, 2);
     index = 0;
+    
+    numSamplesPerBar = 0;
+    currentSampleInBar = 0;
+    anguloAguja = 0;
 
 }
 
@@ -215,10 +220,33 @@ void Seq_v3AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     auto numSamples = buffer.getNumSamples();
 
     convertBPMToTime();
+    
+    //// TODO a lo mejor va al final xd
+    //// actualizamos el numero de sample que acabamos de procesar
+    //currentSampleInBar = (currentSampleInBar + numSamples) % numSamplesPerBar;
+
+    // actualizamos todo el rato el número de samples totales del compás 
+    // para tener la aguja actualizada
+    numSamplesPerBar = euclideanRythm.getEuclideanRythm().size() * stepDuration;
 
     auto steps = apvts.getRawParameterValue("STEPS");
     auto events = apvts.getRawParameterValue("EVENTS");
     euclideanRythm.setEuclideanRythm(steps->load(), events->load());
+
+
+    // funcion para sacar el angulo de donde esta la aguja
+    anguloAguja = getAngleFromCurrentSample();
+    //DBG("angulo " << anguloAguja);
+    // a partir del angulo hay que calcular el nuevo currentSampleInBar 
+    //DBG("antes " << currentSampleInBar);
+    currentSampleInBar = getCurrentSamplesFromAngle();
+    //DBG("despues " << currentSampleInBar);
+    
+    // a partir del angulo ajustamos el pulso que debe sonar 
+    index = getIndexFromAngle();
+
+
+
 
     midiMessages.clear();
 
@@ -230,16 +258,22 @@ void Seq_v3AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         if (euclideanRythm.getEuclideanRythm()[index] == 0) {
             auto message = juce::MidiMessage::noteOff(midiChannel, noteNumber);
             midiMessages.addEvent(message, offset);
-            DBG(getMessageInfo(message));
+            DBG(getMessageInfo(message) << " index " << index);
+            DBG("aguja " << anguloAguja);
+            
         }
         else {
             auto message = juce::MidiMessage::noteOn(midiChannel, noteNumber, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
-            DBG(getMessageInfo(message));
+            DBG(getMessageInfo(message) << " index " << index);
+            DBG("aguja " << anguloAguja);
         }
-        index = (index + 1) % euclideanRythm.getEuclideanRythm().size();
 
     }
+    
+    // actualizamos el numero de sample que acabamos de procesar
+    currentSampleInBar = (currentSampleInBar + numSamples) % numSamplesPerBar;
+    //currentSampleInBar = getCurrentSamplesFromAngle();
 
     //TODO cerrar notas en funcino de noteDuration
     timeStep = (timeStep + numSamples) % stepDuration;
@@ -305,21 +339,44 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v3AudioProcessor::create
 
 //==============================================================================
 
+// Funciones auxiliares
 //esta funcion saca el tiempo en funcion de los bpms
 void Seq_v3AudioProcessor::convertBPMToTime() {
 
     // para probar en visual comentar esto
-    /*playHead = this->getPlayHead();
+    playHead = this->getPlayHead();
     playHead->getCurrentPosition(currentPositionInfo);
-    int bpm = currentPositionInfo.bpm;*/
+    int bpm = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    int bpm = 120;
+    //int bpm = 60;
 
 
     //FIXME cambiar cmath por la biblioteca de matematica de juce
     noteDuration = round((((60000 * rate * figureNote) / bpm) / 1000) * 100) / 100;
     stepDuration = round((((60000 * rate * figureStep) / bpm) / 1000) * 100) / 100;
 }
+
+// funcion que saca el angulo de la aguja a partir del sample en el que estamos
+float Seq_v3AudioProcessor::getAngleFromCurrentSample() {
+    return ((float)(currentSampleInBar * 360) / (float)numSamplesPerBar);
+}
+
+// TO(igual no)DO mirar la perdida de decimales en el angulo ! ! ! ! ! ! ! ! 
+// funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
+int Seq_v3AudioProcessor::getCurrentSamplesFromAngle() {
+    return ((numSamplesPerBar * anguloAguja) / 360);
+}
+
+// funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
+// angulo de la aguja
+int Seq_v3AudioProcessor::getIndexFromAngle() {
+    // currentSampelblabla / duracion de nota en samples
+    // aprox hacia arriba
+    // modulo num steps
+    int aux = floor((float)currentSampleInBar / (float)stepDuration);
+    return aux % euclideanRythm.getEuclideanRythm().size();
+}
+
 
 //==============================================================================
