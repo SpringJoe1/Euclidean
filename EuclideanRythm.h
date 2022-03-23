@@ -2,7 +2,7 @@
   ==============================================================================
 
     EuclideanRythm.h
-    Created: 15 Mar 2022 4:59:06pm
+    Created: 23 Mar 2022 3:36:47pm
     Author:  dburgos
 
   ==============================================================================
@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <cmath>
 

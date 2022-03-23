@@ -13,6 +13,7 @@
 
 
 
+
 juce::String getMidiMessageDescription(const juce::MidiMessage& m)
 {
     if (m.isNoteOn())           return "Note on " + juce::MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3);
@@ -65,104 +66,118 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
 
 
 
-//==============================================================================
 
-Seq_v3AudioProcessor::Seq_v3AudioProcessor()
+
+
+
+
+
+
+//==============================================================================
+Seq_v4AudioProcessor::Seq_v4AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(BusesProperties()
-#if ! JucePlugin_IsMidiEffect
-#if ! JucePlugin_IsSynth
-        .withInput("Input", juce::AudioChannelSet::stereo(), true)
-#endif
-        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
-#endif
-    ), apvts(*this, nullptr, "Parameters", createParameters())
+     : AudioProcessor (BusesProperties()
+                     #if ! JucePlugin_IsMidiEffect
+                      #if ! JucePlugin_IsSynth
+                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                      #endif
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                     #endif
+                       ), apvts(*this, nullptr, "Parameters", createParameters())
 
 #endif
 {
 }
 
-Seq_v3AudioProcessor::~Seq_v3AudioProcessor()
+Seq_v4AudioProcessor::~Seq_v4AudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String Seq_v3AudioProcessor::getName() const
+const juce::String Seq_v4AudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool Seq_v3AudioProcessor::acceptsMidi() const
+bool Seq_v4AudioProcessor::acceptsMidi() const
 {
-#if JucePlugin_WantsMidiInput
+   #if JucePlugin_WantsMidiInput
     return true;
-#else
+   #else
     return false;
-#endif
+   #endif
 }
 
-bool Seq_v3AudioProcessor::producesMidi() const
+bool Seq_v4AudioProcessor::producesMidi() const
 {
-#if JucePlugin_ProducesMidiOutput
+   #if JucePlugin_ProducesMidiOutput
     return true;
-#else
+   #else
     return false;
-#endif
+   #endif
 }
 
-bool Seq_v3AudioProcessor::isMidiEffect() const
+bool Seq_v4AudioProcessor::isMidiEffect() const
 {
-#if JucePlugin_IsMidiEffect
+   #if JucePlugin_IsMidiEffect
     return true;
-#else
+   #else
     return false;
-#endif
+   #endif
 }
 
-double Seq_v3AudioProcessor::getTailLengthSeconds() const
+double Seq_v4AudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int Seq_v3AudioProcessor::getNumPrograms()
+int Seq_v4AudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int Seq_v3AudioProcessor::getCurrentProgram()
+int Seq_v4AudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void Seq_v3AudioProcessor::setCurrentProgram(int index)
+void Seq_v4AudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String Seq_v3AudioProcessor::getProgramName(int index)
+const juce::String Seq_v4AudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void Seq_v3AudioProcessor::changeProgramName(int index, const juce::String& newName)
+void Seq_v4AudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-
-void Seq_v3AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void Seq_v4AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
-    timeStep = 0;                              
-    timeNote = 0;
+    guarrada1 = false;
 
     //TODO de momento tanto los stpes como las notas son negras
     figureStep = 1;
     figureNote = 1;
+    rate = static_cast<float> (sampleRate);
 
-    rate = static_cast<float> (sampleRate); 
+    convertBPMToTime();
+
+    DBG("stepDuration " << stepDuration);
+
+    timeStep = stepDuration;     
+    timeNote = 0;
+
+
+
+
     velocity = 127;
 
     // TODO cambiar el 4
@@ -172,60 +187,49 @@ void Seq_v3AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     numSamplesPerBar = 0;
     currentSampleInBar = 0;
     anguloAguja = 0;
-
 }
 
-void Seq_v3AudioProcessor::releaseResources()
+void Seq_v4AudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool Seq_v3AudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool Seq_v4AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-#if JucePlugin_IsMidiEffect
-    juce::ignoreUnused(layouts);
+  #if JucePlugin_IsMidiEffect
+    juce::ignoreUnused (layouts);
     return true;
-#else
+  #else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
     // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
     // This checks if the input layout matches the output layout
-#if ! JucePlugin_IsSynth
+   #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
-#endif
+   #endif
 
     return true;
-#endif
+  #endif
 }
 #endif
 
-void Seq_v3AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void Seq_v4AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // the audio buffer in a midi effect will have zero channels!
-    //jassert(buffer.getNumChannels() == 0);                                                         // [6]
-
-    //auto totalNotes = apvts.getRawParameterValue("STEPS");
-    //auto events = apvts.getRawParameterValue("EVENTS");
-    //DBG(totalNotes->load() << " " << events->load());
-
     // however we use the buffer to get timing information
     auto numSamples = buffer.getNumSamples();
 
     convertBPMToTime();
     
-    //// TODO a lo mejor va al final xd
-    //// actualizamos el numero de sample que acabamos de procesar
-    //currentSampleInBar = (currentSampleInBar + numSamples) % numSamplesPerBar;
 
-    // actualizamos todo el rato el número de samples totales del compás 
+    // actualizamos todo el rato el nÃºmero de samples totales del compÃ¡s 
     // para tener la aguja actualizada
     numSamplesPerBar = euclideanRythm.getEuclideanRythm().size() * stepDuration;
 
@@ -233,20 +237,11 @@ void Seq_v3AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     auto events = apvts.getRawParameterValue("EVENTS");
     euclideanRythm.setEuclideanRythm(steps->load(), events->load());
 
-
-    // funcion para sacar el angulo de donde esta la aguja
-    anguloAguja = getAngleFromCurrentSample();
-    //DBG("angulo " << anguloAguja);
-    // a partir del angulo hay que calcular el nuevo currentSampleInBar 
-    //DBG("antes " << currentSampleInBar);
-    currentSampleInBar = getCurrentSamplesFromAngle();
-    //DBG("despues " << currentSampleInBar);
-    
-    // a partir del angulo ajustamos el pulso que debe sonar 
-    index = getIndexFromAngle();
-
-
-
+    // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
+    // cs2 y ts2 son el current y el total samples despues de cambiarlos
+    currentSampleInBar = getCurrentSampleUpdated(numSamplesPerBar, stepDuration*euclideanRythm.getEuclideanRythm().size());
+    // a partir del current sample que estamos procesando, sacamos el index del ritmo
+    index = getIndexFromCurrentSample();
 
     midiMessages.clear();
 
@@ -258,71 +253,66 @@ void Seq_v3AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         if (euclideanRythm.getEuclideanRythm()[index] == 0) {
             auto message = juce::MidiMessage::noteOff(midiChannel, noteNumber);
             midiMessages.addEvent(message, offset);
-            DBG(getMessageInfo(message) << " index " << index);
-            DBG("aguja " << anguloAguja);
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps->load());
             
         }
         else {
             auto message = juce::MidiMessage::noteOn(midiChannel, noteNumber, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
-            DBG(getMessageInfo(message) << " index " << index);
-            DBG("aguja " << anguloAguja);
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps->load());
         }
 
     }
     
     // actualizamos el numero de sample que acabamos de procesar
-    currentSampleInBar = (currentSampleInBar + numSamples) % numSamplesPerBar;
-    //currentSampleInBar = getCurrentSamplesFromAngle();
+    currentSampleInBar = (currentSampleInBar + numSamples) % (euclideanRythm.getEuclideanRythm().size() * stepDuration);//((int)steps->load()*stepDuration);
 
     //TODO cerrar notas en funcino de noteDuration
     timeStep = (timeStep + numSamples) % stepDuration;
     timeNote = (timeNote + numSamples) % noteDuration;
 
 
-
 }
 
 //==============================================================================
-
-bool Seq_v3AudioProcessor::hasEditor() const
+bool Seq_v4AudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* Seq_v3AudioProcessor::createEditor()
+juce::AudioProcessorEditor* Seq_v4AudioProcessor::createEditor()
 {
-    return new Seq_v3AudioProcessorEditor(*this);
+    return new Seq_v4AudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void Seq_v3AudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+void Seq_v4AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-
 }
 
-void Seq_v3AudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void Seq_v4AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-
 }
 
 //==============================================================================
-
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new Seq_v3AudioProcessor();
+    return new Seq_v4AudioProcessor();
 }
 
+
+//==============================================================================
+//==============================================================================
 //==============================================================================
 
 // Function that returns a layout of the parameters
-juce::AudioProcessorValueTreeState::ParameterLayout Seq_v3AudioProcessor::createParameters() {
+juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::createParameters() {
 
     // Vector with the parameters
     vector<unique_ptr<juce::RangedAudioParameter>> paramsVector;
@@ -341,7 +331,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v3AudioProcessor::create
 
 // Funciones auxiliares
 //esta funcion saca el tiempo en funcion de los bpms
-void Seq_v3AudioProcessor::convertBPMToTime() {
+void Seq_v4AudioProcessor::convertBPMToTime() {
 
     // para probar en visual comentar esto
     playHead = this->getPlayHead();
@@ -349,7 +339,7 @@ void Seq_v3AudioProcessor::convertBPMToTime() {
     int bpm = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    //int bpm = 60;
+    //int bpm = 120;
 
 
     //FIXME cambiar cmath por la biblioteca de matematica de juce
@@ -357,26 +347,16 @@ void Seq_v3AudioProcessor::convertBPMToTime() {
     stepDuration = round((((60000 * rate * figureStep) / bpm) / 1000) * 100) / 100;
 }
 
-// funcion que saca el angulo de la aguja a partir del sample en el que estamos
-float Seq_v3AudioProcessor::getAngleFromCurrentSample() {
-    return ((float)(currentSampleInBar * 360) / (float)numSamplesPerBar);
+
+// funcion que refresca el valor de currentSample 
+int Seq_v4AudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar) {
+    return ((float)newNumSamplesPerBar / (float)numSamplesPerBar) * (float)currentSampleInBar;
 }
 
-// TO(igual no)DO mirar la perdida de decimales en el angulo ! ! ! ! ! ! ! ! 
-// funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
-int Seq_v3AudioProcessor::getCurrentSamplesFromAngle() {
-    return ((numSamplesPerBar * anguloAguja) / 360);
-}
-
-// funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
-// angulo de la aguja
-int Seq_v3AudioProcessor::getIndexFromAngle() {
-    // currentSampelblabla / duracion de nota en samples
-    // aprox hacia arriba
-    // modulo num steps
-    int aux = floor((float)currentSampleInBar / (float)stepDuration);
+int Seq_v4AudioProcessor::getIndexFromCurrentSample() {
+    int aux = ceil((float)currentSampleInBar / (float)stepDuration);
+    //DBG("aux = " << aux);
     return aux % euclideanRythm.getEuclideanRythm().size();
 }
-
-
 //==============================================================================
+

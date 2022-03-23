@@ -10,13 +10,13 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-Seq_v3AudioProcessorEditor::Seq_v3AudioProcessorEditor (Seq_v3AudioProcessor& p)
+Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor (Seq_v4AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-
-    setSize(400, 300);
-
-    // alias para que sea m·s legible
+    
+    setSize (400, 300);
+    
+    // alias para que sea m√°s legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
     // memory allocation
@@ -25,24 +25,24 @@ Seq_v3AudioProcessorEditor::Seq_v3AudioProcessorEditor (Seq_v3AudioProcessor& p)
 
     setSliderParams(stepsSlider);
     setSliderParams(eventsSlider);
-
+    
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
 }
 
-Seq_v3AudioProcessorEditor::~Seq_v3AudioProcessorEditor()
+Seq_v4AudioProcessorEditor::~Seq_v4AudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void Seq_v3AudioProcessorEditor::paint (juce::Graphics& g)
+void Seq_v4AudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (juce::Colours::black);
 }
 
-void Seq_v3AudioProcessorEditor::resized()
+void Seq_v4AudioProcessorEditor::resized()
 {
     int numOfSliders = 2;
 
@@ -67,7 +67,7 @@ void Seq_v3AudioProcessorEditor::resized()
 
 //==============================================================================
 
-void Seq_v3AudioProcessorEditor::setSliderParams (juce::Slider& slider) {
+void Seq_v4AudioProcessorEditor::setSliderParams (juce::Slider& slider) {
     slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 25);
     addAndMakeVisible(slider);

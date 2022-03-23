@@ -16,11 +16,11 @@ using namespace std;
 //==============================================================================
 /**
 */
-class Seq_v3AudioProcessorEditor  : public juce::AudioProcessorEditor
+class Seq_v4AudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    Seq_v3AudioProcessorEditor (Seq_v3AudioProcessor&);
-    ~Seq_v3AudioProcessorEditor() override;
+    Seq_v4AudioProcessorEditor (Seq_v4AudioProcessor&);
+    ~Seq_v4AudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -30,15 +30,15 @@ private:
 
     //==============================================================================
 
-    void Seq_v3AudioProcessorEditor::setSliderParams(juce::Slider& slider);
+    void Seq_v4AudioProcessorEditor::setSliderParams(juce::Slider& slider);
 
     //==============================================================================
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    Seq_v3AudioProcessor& audioProcessor;
-
-    // alias para que sea m·s legible
+    Seq_v4AudioProcessor& audioProcessor;
+    
+    // alias para que sea m√°s legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
     juce::Slider stepsSlider;
@@ -47,5 +47,5 @@ private:
     unique_ptr<SliderAttachment> eventsSliderAttachment;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v3AudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v4AudioProcessorEditor)
 };

@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include <cmath>
 #include <JuceHeader.h>
-#include <math.h> 
+#include <cmath> 
 #include "EuclideanRythm.h"
 
 using namespace std;
@@ -18,12 +17,12 @@ using namespace std;
 //==============================================================================
 /**
 */
-class Seq_v3AudioProcessor  : public juce::AudioProcessor
+class Seq_v4AudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    Seq_v3AudioProcessor();
-    ~Seq_v3AudioProcessor() override;
+    Seq_v4AudioProcessor();
+    ~Seq_v4AudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -55,7 +54,7 @@ public:
     void changeProgramName (int index, const juce::String& newName) override;
 
     //==============================================================================
-
+    
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
@@ -72,17 +71,26 @@ private:
 
     void convertBPMToTime();
     // funcion que saca el angulo de la aguja a partir del sample en el que estamos
-    float getAngleFromCurrentSample();
-    // funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
-    // angulo de la aguja
-    int getIndexFromAngle();
-    // funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
-    int getCurrentSamplesFromAngle();
-    // function that returns the parameter layout of the audio processor value tree state
+    
+    // funciones alv
+    //float getAngleFromCurrentSample();
+    //// funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
+    //// angulo de la aguja
+    //int getIndexFromAngle();
+    //// funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
+    //int getCurrentSamplesFromAngle();
+    //// function that returns the parameter layout of the audio processor value tree state
+
+    int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar);
+    int getIndexFromCurrentSample();
+
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
 
     //==============================================================================
+
+    // guarradas
+    bool guarrada1;
 
     juce::AudioPlayHead* playHead;
     juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
@@ -100,15 +108,15 @@ private:
 
     // duracion de las notas (blanca, corchea, etc)
     int figureStep, figureNote;
-    // duración de las notas en número de samples
+    // duraciÃ³n de las notas en nÃºmero de samples
     int stepDuration, noteDuration;
-    // contadores para llevar cuanto lleva sonando el step y la nota actual (en número de samples)
+    // contadores para llevar cuanto lleva sonando el step y la nota actual (en nÃºmero de samples)
     int timeStep, timeNote;
-    // total de samples de un compás para calcular por donde va la aguja
+    // total de samples de un compÃ¡s para calcular por donde va la aguja
     int numSamplesPerBar;
-    // número del sample que acabamos de procesar en el compas
+    // nÃºmero del sample que acabamos de procesar en el compas
     int currentSampleInBar;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v3AudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Seq_v4AudioProcessor)
 };
