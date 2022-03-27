@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include <JuceHeader.h>
 #include <vector>
 #include <cmath>
+
 
 using namespace std;
 
@@ -20,22 +22,47 @@ private:
     vector<int> _euclideanRythm;
     int _steps;
     int _events;
+    int _rotation;
 
-    
 public:
 
     EuclideanRythm() {
         this->_euclideanRythm = { NULL };
         this->_steps = 0;
         this->_events = 0;
+        this-> _rotation = 0;
         _euclideanRythm[0] = 0;
     }
 
-    EuclideanRythm(int steps, int events) {
-        setEuclideanRythm(steps, events);
+    EuclideanRythm(int steps, int events, int rotation) {
+        setEuclideanRythm(steps, events, rotation);
     }
 
-    void setEuclideanRythm(int steps, int events) {
+    //==============================================================================
+
+    int getSteps() {
+        return this->_steps;
+    }
+
+    int getEvents() {
+        return this->_events;
+    }
+
+    vector<int> getEuclideanRythm() {
+        return _euclideanRythm;
+    }
+
+    juce::String getList() {
+        juce::String ret;
+        vector<int>::iterator it = this->_euclideanRythm.begin();
+        for (it = this->_euclideanRythm.begin(); it != this->_euclideanRythm.end(); ++it)
+            ret += (*it);
+        return ret;
+    }
+
+    //==============================================================================
+
+    void setEuclideanRythm(int steps, int events, int rotation) {
 
         this->_euclideanRythm.clear();
 
@@ -45,6 +72,7 @@ public:
         if (events == 0) {
             for (int i = 0; i < this->_steps; i++)
                 this->_euclideanRythm.push_back(0);
+            rotateRight(rotation);
             return;
         }
 
@@ -59,26 +87,36 @@ public:
                 this->_euclideanRythm.push_back(1);
             previous = currentValue;
         }
-
+        rotateRight(rotation);
     }
 
-    vector<int> getEuclideanRythm() {
-        return _euclideanRythm;
+    void setEvents(int newEvents) {
+        setEuclideanRythm(this->_steps, newEvents, _rotation);
     }
 
-    void rotate() {
-        int last = this->_euclideanRythm.back();
-        vector<int>::iterator it = this->_euclideanRythm.begin();
-        this->_euclideanRythm.insert(it, last);
-        this->_euclideanRythm.pop_back();
+    void setSteps(int newSteps) {
+        setEuclideanRythm(newSteps, this->_events, _rotation);
     }
 
-    void changeEvents(int newEvents) {
-        setEuclideanRythm(this->_steps, newEvents);
+    //==============================================================================
+
+    void rotateRight(int times) {
+        for (int i = 0; i < times; i++) {
+            int last = this->_euclideanRythm.back();
+            vector<int>::iterator it = this->_euclideanRythm.begin();
+            this->_euclideanRythm.insert(it, last);
+            this->_euclideanRythm.pop_back();
+        }
+        this->_rotation += times;
     }
 
-    void changeSteps(int newSteps) {
-        setEuclideanRythm(newSteps, this->_events);
+    void rotateLeft(int times) {
+        for (int i = 0; i < times; i++) {
+            int first = this->_euclideanRythm.front();
+            this->_euclideanRythm.push_back(first);
+            this->_euclideanRythm.erase(this->_euclideanRythm.begin());
+        }
+        this->_rotation -= times;
     }
 
     void showList() {
