@@ -31,6 +31,10 @@ private:
 
     //==============================================================================
 
+    void paintRythm(juce::Graphics& g);
+
+    //==============================================================================
+
     void setSliderParams(juce::Slider& slider);
     void setNoteNumberComboBoxParams();
 

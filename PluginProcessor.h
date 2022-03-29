@@ -75,10 +75,13 @@ public:
 
     //==============================================================================
 
-    void setNoteNumber(int note);
+    void setNewNoteNumber(int note);
+    EuclideanRythm getEuclideanRythm();
 
     //==============================================================================
 
+    //guarradas
+    bool guarrada1;
 
 private:
 
@@ -98,6 +101,7 @@ private:
 
     int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar);
     int getIndexFromCurrentSample();
+    void updateNoteNumber();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
@@ -111,7 +115,8 @@ private:
     EuclideanRythm euclideanRythm;
     int index;
     int rotationValue;
-    int noteNumber;
+    int currentNoteNumber, newNoteNumber;
+
 
 
     // sample rate

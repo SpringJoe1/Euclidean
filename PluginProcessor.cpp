@@ -160,7 +160,7 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-
+    guarrada1 = true;
 
     //TODO de momento tanto los stpes como las notas son negras
     figureStep = 1;
@@ -179,10 +179,11 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     velocity = 127;
 
     // TODO cambiar el 4
-    euclideanRythm = EuclideanRythm(4, 2, 0);
+    euclideanRythm = EuclideanRythm(8, 4, 0);
     index = 0;
     rotationValue = 0;
-    noteNumber = 72;  // C4
+    currentNoteNumber = 72;  // C4
+    newNoteNumber = 72;  // C4
 
     numSamplesPerBar = 0;
     currentSampleInBar = 0;
@@ -235,7 +236,6 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     int steps = *apvts.getRawParameterValue("STEPS");
     int events = *apvts.getRawParameterValue("EVENTS");
     int newRotation = *apvts.getRawParameterValue("ROTATION");
-    auto noteNumberComboBox = apvts.getParameterAsValue("NOTE_NUMBER");//*apvts.getRawParameterValue("NOTE_NUMBER");
     
     euclideanRythm.setEuclideanRythm(steps, events, rotationValue);
 
@@ -266,21 +266,21 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     if ((timeStep + numSamples) >= stepDuration)
     {
         auto offset = juce::jmax(0, juce::jmin((int)(stepDuration - timeStep), numSamples - 1));
-
-        if (euclideanRythm.getEuclideanRythm()[index] == 0) {
-            auto message = juce::MidiMessage::noteOff(midiChannel, noteNumber);
+            
+        if (euclideanRythm.getEuclideanRythm()[index] == 1) {
+            auto message = juce::MidiMessage::noteOn(midiChannel, currentNoteNumber, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
             //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << noteNumber);
-
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
         }
         else {
-            auto message = juce::MidiMessage::noteOn(midiChannel, noteNumber, (juce::uint8)velocity);
+            auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
             midiMessages.addEvent(message, offset);
             //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps);
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
         }
-
+        // TODO no se donde poner esta vaina ! ! ! ! ! ! ! 
+        updateNoteNumber();
     }
 
     // actualizamos el numero de sample que acabamos de procesar
@@ -337,8 +337,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
     vector<unique_ptr<juce::RangedAudioParameter>> paramsVector;
 
     // We add elements to the vector
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS", "Steps", 0, 16, 4));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS", "Events", 0, 16, 2));
+    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS", "Steps", 0, 16, 8));
+    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS", "Events", 0, 16, 4));
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION", "Rotation", 0, 16, 0));
     // C4 by default (index 48 in the StringArray)
     paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER", "Note",
@@ -356,8 +356,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
 
 }
 
-void Seq_v4AudioProcessor::setNoteNumber(int note) {
-    noteNumber = note;
+void Seq_v4AudioProcessor::setNewNoteNumber(int note) {
+    newNoteNumber = note;
+}
+
+
+void Seq_v4AudioProcessor::updateNoteNumber() {
+    currentNoteNumber = newNoteNumber;
 }
 
 
@@ -390,6 +395,10 @@ int Seq_v4AudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newN
 int Seq_v4AudioProcessor::getIndexFromCurrentSample() {
     int aux = ceil((float)currentSampleInBar / (float)stepDuration);
     return aux % euclideanRythm.getSteps();
+}
+
+EuclideanRythm Seq_v4AudioProcessor::getEuclideanRythm() {
+    return euclideanRythm;
 }
 //==============================================================================
 
