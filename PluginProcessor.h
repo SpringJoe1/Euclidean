@@ -9,8 +9,10 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <vector>
 #include <cmath> 
 #include "EuclideanRythm.h"
+#include <map>
 
 using namespace std;
 
@@ -116,7 +118,11 @@ private:
     int index;
     int rotationValue;
     int currentNoteNumber, newNoteNumber;
-
+    // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
+    map<int, int> notesDurationMap;
+    vector<int> notesToDeleteFromMap;
+    // iterador para recorrer el map
+    //map<int, int>::iterator itr;
 
 
     // sample rate
@@ -126,13 +132,13 @@ private:
 
     // duracion de las notas (blanca, corchea, etc)
     int figureStep, figureNote;
-    // duraciÃ³n de las notas en nÃºmero de samples
+    // duración de las notas en número de samples
     int stepDuration, noteDuration;
-    // contadores para llevar cuanto lleva sonando el step y la nota actual (en nÃºmero de samples)
+    // contadores para llevar cuanto lleva sonando el step y la nota actual (en número de samples)
     int timeStep, timeNote;
-    // total de samples de un compÃ¡s para calcular por donde va la aguja
+    // total de samples de un compás para calcular por donde va la aguja
     int numSamplesPerBar;
-    // nÃºmero del sample que acabamos de procesar en el compas
+    // número del sample que acabamos de procesar en el compas
     int currentSampleInBar;
 
     //==============================================================================

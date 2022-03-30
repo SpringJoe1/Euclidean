@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin editor.
+	This file contains the basic framework code for a JUCE plugin editor.
 
   ==============================================================================
 */
@@ -11,31 +11,31 @@
 
 //==============================================================================
 Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p)
+	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
-    setSize(400, 300);
+	setSize(400, 300);
 
-    // alias para que sea m√°s legible
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-    //using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+	// alias para que sea m·s legible
+	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+	//using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
-    // memory allocation
-    stepsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS", stepsSlider);
-    eventsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS", eventsSlider);
-    rotationSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION", rotationSlider);
-    //noteNumberComboBoxAttachment = make_unique<ComboBoxAttachment>(audioProcessor.apvts, "NOTE_NUMBER", noteNumberComboBox);
+	// memory allocation
+	stepsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS", stepsSlider);
+	eventsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS", eventsSlider);
+	rotationSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION", rotationSlider);
+	//noteNumberComboBoxAttachment = make_unique<ComboBoxAttachment>(audioProcessor.apvts, "NOTE_NUMBER", noteNumberComboBox);
 
-    setSliderParams(stepsSlider);
-    setSliderParams(eventsSlider);
-    setSliderParams(rotationSlider);
+	setSliderParams(stepsSlider);
+	setSliderParams(eventsSlider);
+	setSliderParams(rotationSlider);
 
 	noteNumberComboBox.addListener(this);
-    setNoteNumberComboBoxParams();
+	setNoteNumberComboBoxParams();
 
 
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+	// Make sure that before the constructor has finished, you've set the
+	// editor's size to whatever you need it to be.
 
 }
 
@@ -46,46 +46,46 @@ Seq_v4AudioProcessorEditor::~Seq_v4AudioProcessorEditor()
 //==============================================================================
 void Seq_v4AudioProcessorEditor::paint(juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
+	// (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.fillAll(juce::Colours::black);
 	//paintRythm(g);
 }
 
 void Seq_v4AudioProcessorEditor::resized()
 {
-    int numOfSliders = 4;
+	int numOfSliders = 4;
 
-    // bounds of the whole pluggin
-    const auto bounds = getLocalBounds().reduced(10);
-    // distance between sliders
-    const auto padding = 10;
-    // ancho del slider
-    const auto sliderWidth = bounds.getWidth() / numOfSliders - padding;
-    // alto del slider
-    const auto sliderHeight = bounds.getWidth() / numOfSliders - padding;
-    // donde empieza el primer slider eje X
-    const auto sliderStartX = 0;
-    // donde empieza el primer slider eje Y
-    const auto sliderStartY = bounds.getHeight() / 3 - (sliderHeight / 2);
+	// bounds of the whole pluggin
+	const auto bounds = getLocalBounds().reduced(10);
+	// distance between sliders
+	const auto padding = 10;
+	// ancho del slider
+	const auto sliderWidth = bounds.getWidth() / numOfSliders - padding;
+	// alto del slider
+	const auto sliderHeight = bounds.getWidth() / numOfSliders - padding;
+	// donde empieza el primer slider eje X
+	const auto sliderStartX = 0;
+	// donde empieza el primer slider eje Y
+	const auto sliderStartY = bounds.getHeight() / 3 - (sliderHeight / 2);
 
-    // now we set de bounds
-    stepsSlider.setBounds(sliderStartX, sliderStartY, sliderWidth, sliderHeight);
-    eventsSlider.setBounds(stepsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-    rotationSlider.setBounds(eventsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-    noteNumberComboBox.setBounds(rotationSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	// now we set de bounds
+	stepsSlider.setBounds(sliderStartX, sliderStartY, sliderWidth, sliderHeight);
+	eventsSlider.setBounds(stepsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	rotationSlider.setBounds(eventsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	noteNumberComboBox.setBounds(rotationSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
 
 }
 
 //==============================================================================
 
 void Seq_v4AudioProcessorEditor::setSliderParams(juce::Slider& slider) {
-    slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 25);
-    addAndMakeVisible(slider);
+	slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+	slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 25);
+	addAndMakeVisible(slider);
 }
 
 void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
-    
+
 	noteNumberComboBox.addItem("C0", 24);
 	noteNumberComboBox.addItem("C#0", 25);
 	noteNumberComboBox.addItem("D0", 26);
@@ -178,14 +178,14 @@ void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
 	noteNumberComboBox.addItem("B6", 107);
 
 	noteNumberComboBox.setSelectedId(72); //C4
-    noteNumberComboBox.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(noteNumberComboBox);
+	noteNumberComboBox.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(noteNumberComboBox);
 }
 
 //==============================================================================
 
 void Seq_v4AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
-	
+
 
 	audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId());
 }
@@ -193,13 +193,13 @@ void Seq_v4AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHas
 //==============================================================================
 
 void Seq_v4AudioProcessorEditor::paintRythm(juce::Graphics& g) {
-	
-	// l√≠mites del plugin
+
+	// lÌmites del plugin
 	const auto bounds = getLocalBounds().reduced(10);
-	
+
 	// alto de los segmentos
 	const auto alturaSegmentos = 15;
-	
+
 	// coordenadas (X,Y) donde empezar a pintar 
 	const auto startY = bounds.getBottom() - 5 - alturaSegmentos;
 	const auto startX = 5;
@@ -207,7 +207,7 @@ void Seq_v4AudioProcessorEditor::paintRythm(juce::Graphics& g) {
 	// numero de segmentos del ritmo
 	const auto numSeg = audioProcessor.getEuclideanRythm().getSteps();
 	// anchura de cada segmento
-	const auto anchoSegmento = (bounds.getWidth() - 10)/numSeg;
+	const auto anchoSegmento = (bounds.getWidth() - 10) / numSeg;
 
 	DBG("numSeg " << numSeg);
 
@@ -215,7 +215,7 @@ void Seq_v4AudioProcessorEditor::paintRythm(juce::Graphics& g) {
 		if (audioProcessor.guarrada1) {
 			audioProcessor.guarrada1 = false;
 			g.setColour(juce::Colours::purple);
-			g.fillRect(startX + (anchoSegmento* i), startY, anchoSegmento, alturaSegmentos);
+			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
 		}
 		else {
 			audioProcessor.guarrada1 = true;

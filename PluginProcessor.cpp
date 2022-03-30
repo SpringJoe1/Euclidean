@@ -163,7 +163,8 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     guarrada1 = true;
 
     //TODO de momento tanto los stpes como las notas son negras
-    figureStep = 1;
+    // negra = 1
+    figureStep = 4;
     figureNote = 1;
     rate = static_cast<float> (sampleRate);
 
@@ -222,19 +223,20 @@ bool Seq_v4AudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) co
 
 void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+
     // however we use the buffer to get timing information
     auto numSamples = buffer.getNumSamples();
 
     convertBPMToTime();
-
-    // actualizamos todo el rato el nÃºmero de samples totales del compÃ¡s 
+    
+    // actualizamos todo el rato el número de samples totales del compás 
     // para tener la aguja actualizada
     numSamplesPerBar = euclideanRythm.getSteps() * stepDuration;
 
     int steps = *apvts.getRawParameterValue("STEPS");
     int events = *apvts.getRawParameterValue("EVENTS");
     int newRotation = *apvts.getRawParameterValue("ROTATION");
-    
+
     euclideanRythm.setEuclideanRythm(steps, events, rotationValue);
 
     // check if it has to rotate, and if it has to do it to the right or to the left
@@ -259,11 +261,32 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 
     midiMessages.clear();
 
-    //TODO cambiar a stepduration
-    if ((timeStep + numSamples) >= stepDuration)
-    {
+    // comprobamos el tiempo que lleva durando cada nota
+    // si ha excedido >= noteDuration se manda un noteOff de esa nota
+    // en caso contrario se actualiza el tiempo que lleva sonando
+    for (auto itr = notesDurationMap.begin(); itr != notesDurationMap.end(); ++itr) {
+        if (itr->second + numSamples >= noteDuration) {
+            auto offset = juce::jmax(0, juce::jmin((int)(noteDuration - itr->second), numSamples - 1));
+            auto message = juce::MidiMessage::noteOff(midiChannel, itr->first);
+            midiMessages.addEvent(message, offset);
+            notesToDeleteFromMap.push_back(itr->first);
+        }
+        else {
+            DBG("before ntoeDuration " << itr->second);
+            itr->second = (itr->second + numSamples) % noteDuration;
+            DBG("after ntoeDuration " << itr->second);
+        }
+    }
+
+    // vector auxiliar para borrar las notas del mapa que han dejado de sonar
+    for (auto itr = notesToDeleteFromMap.begin(); itr != notesToDeleteFromMap.end(); ++itr) {
+        notesDurationMap.erase(*itr);
+    }
+    notesToDeleteFromMap.clear();
+
+    if ((timeStep + numSamples) >= stepDuration){
+
         auto offset = juce::jmax(0, juce::jmin((int)(stepDuration - timeStep), numSamples - 1));
-            
 
         if (currentNoteNumber != newNoteNumber) {
             // hacemos que la nota actual deje de sonar 
@@ -275,19 +298,22 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
             updateNoteNumber();
         }
 
+        // empieza a sonar una nota lanzando el noteOn
+        // añadimos 
         if (euclideanRythm.getEuclideanRythm()[index] == 1) {
-            auto message = juce::MidiMessage::noteOn(midiChannel, newNoteNumber, (juce::uint8)velocity);
+            auto message = juce::MidiMessage::noteOn(midiChannel, currentNoteNumber, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
             //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
             DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
+            notesDurationMap.insert({ currentNoteNumber, numSamples - offset});
         }
-        else {
-            auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
-            midiMessages.addEvent(message, offset);
-            //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
-        }
-        // TODO no se donde poner esta vaina ! ! ! ! ! ! ! 
+        // comentar esta vaina
+        //else {
+        //    auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
+        //    midiMessages.addEvent(message, offset);
+        //    //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
+        //    DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
+        //}
     }
 
     // actualizamos el numero de sample que acabamos de procesar
@@ -295,7 +321,7 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 
     //TODO cerrar notas en funcino de noteDuration
     timeStep = (timeStep + numSamples) % stepDuration;
-    timeNote = (timeNote + numSamples) % noteDuration;
+
 
 
 }
@@ -348,14 +374,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS", "Events", 0, 16, 4));
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION", "Rotation", 0, 16, 0));
     // C4 by default (index 48 in the StringArray)
-    paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER", "Note",
-        juce::StringArray ("C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
-        "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1",
-        "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
-        "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3",
-        "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4",
-        "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5",
-        "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6"), 48));
+    //paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER", "Note",
+    //    juce::StringArray("C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
+    //        "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1",
+    //        "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
+    //        "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3",
+    //        "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4",
+    //        "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5",
+    //        "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6"), 48));
 
 
     // Return the vector

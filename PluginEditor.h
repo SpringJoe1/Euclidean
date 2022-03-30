@@ -17,7 +17,7 @@ using namespace std;
 /**
 */
 class Seq_v4AudioProcessorEditor : public juce::AudioProcessorEditor,
-                                   public juce::ComboBox::Listener
+    public juce::ComboBox::Listener
 {
 public:
     Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor&);
@@ -49,7 +49,7 @@ private:
     // access the processor object that created it.
     Seq_v4AudioProcessor& audioProcessor;
 
-    // alias para que sea m√°s legible
+    // alias para que sea m·s legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     //using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
