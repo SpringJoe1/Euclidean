@@ -175,7 +175,6 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
 
 
-
     velocity = 127;
 
     // TODO cambiar el 4
@@ -228,7 +227,6 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 
     convertBPMToTime();
 
-
     // actualizamos todo el rato el número de samples totales del compás 
     // para tener la aguja actualizada
     numSamplesPerBar = euclideanRythm.getSteps() * stepDuration;
@@ -253,7 +251,6 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     }
 
 
-
     // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
     // cs2 y ts2 son el current y el total samples despues de cambiarlos
     currentSampleInBar = getCurrentSampleUpdated(numSamplesPerBar, stepDuration * euclideanRythm.getSteps());
@@ -267,8 +264,19 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     {
         auto offset = juce::jmax(0, juce::jmin((int)(stepDuration - timeStep), numSamples - 1));
             
+
+        if (currentNoteNumber != newNoteNumber) {
+            // hacemos que la nota actual deje de sonar 
+            auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
+            midiMessages.addEvent(message, offset);
+            DBG("cambio de nota " << currentNoteNumber << " a " << newNoteNumber);
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
+            // actualizamos la nota
+            updateNoteNumber();
+        }
+
         if (euclideanRythm.getEuclideanRythm()[index] == 1) {
-            auto message = juce::MidiMessage::noteOn(midiChannel, currentNoteNumber, (juce::uint8)velocity);
+            auto message = juce::MidiMessage::noteOn(midiChannel, newNoteNumber, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
             //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
             DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
@@ -280,7 +288,6 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
             DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
         }
         // TODO no se donde poner esta vaina ! ! ! ! ! ! ! 
-        updateNoteNumber();
     }
 
     // actualizamos el numero de sample que acabamos de procesar
@@ -373,12 +380,12 @@ void Seq_v4AudioProcessor::updateNoteNumber() {
 void Seq_v4AudioProcessor::convertBPMToTime() {
 
     // para probar en visual comentar esto
-    //playHead = this->getPlayHead();
-    //playHead->getCurrentPosition(currentPositionInfo);
-    //int bpm = currentPositionInfo.bpm;
+    playHead = this->getPlayHead();
+    playHead->getCurrentPosition(currentPositionInfo);
+    int bpm = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    int bpm = 120;
+    //int bpm = 120;
 
 
     //FIXME cambiar cmath por la biblioteca de matematica de juce

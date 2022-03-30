@@ -186,6 +186,7 @@ void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
 
 void Seq_v4AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
 	
+
 	audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId());
 }
 
