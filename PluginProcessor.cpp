@@ -9,6 +9,18 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+//==============================================================================
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -73,7 +85,13 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
 
 
 
-//==============================================================================
+
+
+
+
+
+
+
 Seq_v4AudioProcessor::Seq_v4AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(BusesProperties()
@@ -160,14 +178,14 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    guarrada1 = true;
+
+    numTotalSequencers = 0;
 
     //TODO de momento tanto los stpes como las notas son negras
     // negra = 1
-    figureStep = 4;
+    figureStep = 1;
     figureNote = 1;
     rate = static_cast<float> (sampleRate);
-
     convertBPMToTime();
 
 
@@ -179,11 +197,11 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     velocity = 127;
 
     // TODO cambiar el 4
-    euclideanRythm = EuclideanRythm(8, 4, 0);
+    euclideanRythm = new EuclideanRythmComponent(8, 4, 0);
+
     index = 0;
     rotationValue = 0;
-    currentNoteNumber = 72;  // C4
-    newNoteNumber = 72;  // C4
+    noteNumber = 72;  // C4
 
     numSamplesPerBar = 0;
     currentSampleInBar = 0;
@@ -228,34 +246,36 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     auto numSamples = buffer.getNumSamples();
 
     convertBPMToTime();
-    
-    // actualizamos todo el rato el número de samples totales del compás 
+
+    // actualizamos todo el rato el nï¿½mero de samples totales del compï¿½s 
     // para tener la aguja actualizada
-    numSamplesPerBar = euclideanRythm.getSteps() * stepDuration;
+    numSamplesPerBar = euclideanRythm->getSteps() * stepDuration;
 
     int steps = *apvts.getRawParameterValue("STEPS");
     int events = *apvts.getRawParameterValue("EVENTS");
     int newRotation = *apvts.getRawParameterValue("ROTATION");
 
-    euclideanRythm.setEuclideanRythm(steps, events, rotationValue);
+    euclideanRythm->setEuclideanRythm(steps, events, rotationValue);
 
     // check if it has to rotate, and if it has to do it to the right or to the left
     if (newRotation > rotationValue) {
-        DBG("antes rotation = " << rotationValue << " on " << euclideanRythm.getList());
-        euclideanRythm.rotateRight(newRotation - rotationValue);
+        DBG("antes rotation = " << rotationValue << " on " << euclideanRythm->getList());
+        euclideanRythm->rotateRight(newRotation - rotationValue);
         rotationValue = newRotation;
-        DBG("despues rotation = " << rotationValue << " on " << euclideanRythm.getList());
+        DBG("despues rotation = " << rotationValue << " on " << euclideanRythm->getList());
 
     }
     else if (newRotation < rotationValue) {
-        euclideanRythm.rotateLeft(rotationValue - newRotation);
+        DBG("antes rotation = " << rotationValue << " on " << euclideanRythm->getList());
+        euclideanRythm->rotateLeft(rotationValue - newRotation);
         rotationValue = newRotation;
+        DBG("despues rotation = " << rotationValue << " on " << euclideanRythm->getList());
     }
 
 
     // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
     // cs2 y ts2 son el current y el total samples despues de cambiarlos
-    currentSampleInBar = getCurrentSampleUpdated(numSamplesPerBar, stepDuration * euclideanRythm.getSteps());
+    currentSampleInBar = getCurrentSampleUpdated(numSamplesPerBar, stepDuration * euclideanRythm->getSteps());
     // a partir del current sample que estamos procesando, sacamos el index del ritmo
     index = getIndexFromCurrentSample();
 
@@ -272,9 +292,7 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
             notesToDeleteFromMap.push_back(itr->first);
         }
         else {
-            DBG("before ntoeDuration " << itr->second);
             itr->second = (itr->second + numSamples) % noteDuration;
-            DBG("after ntoeDuration " << itr->second);
         }
     }
 
@@ -284,45 +302,26 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     }
     notesToDeleteFromMap.clear();
 
-    if ((timeStep + numSamples) >= stepDuration){
+    if ((timeStep + numSamples) >= stepDuration) {
 
         auto offset = juce::jmax(0, juce::jmin((int)(stepDuration - timeStep), numSamples - 1));
 
-        if (currentNoteNumber != newNoteNumber) {
-            // hacemos que la nota actual deje de sonar 
-            auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
-            midiMessages.addEvent(message, offset);
-            DBG("cambio de nota " << currentNoteNumber << " a " << newNoteNumber);
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
-            // actualizamos la nota
-            updateNoteNumber();
-        }
-
         // empieza a sonar una nota lanzando el noteOn
-        // añadimos 
-        if (euclideanRythm.getEuclideanRythm()[index] == 1) {
-            auto message = juce::MidiMessage::noteOn(midiChannel, currentNoteNumber, (juce::uint8)velocity);
+        // aï¿½adimos 
+        if (euclideanRythm->getEuclideanRythm()[index] == 1) {
+            int note = noteNumber;
+            auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
             midiMessages.addEvent(message, offset);
-            //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
-            notesDurationMap.insert({ currentNoteNumber, numSamples - offset});
+            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << note);
+            notesDurationMap.insert({ note, numSamples - offset });
         }
-        // comentar esta vaina
-        //else {
-        //    auto message = juce::MidiMessage::noteOff(midiChannel, currentNoteNumber);
-        //    midiMessages.addEvent(message, offset);
-        //    //DBG("rotation = " << rotationValue << " on " << euclideanRythm.getList());
-        //    DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << currentNoteNumber);
-        //}
     }
 
     // actualizamos el numero de sample que acabamos de procesar
-    currentSampleInBar = (currentSampleInBar + numSamples) % (euclideanRythm.getSteps() * stepDuration);//((int)steps->load()*stepDuration);
+    currentSampleInBar = (currentSampleInBar + numSamples) % (euclideanRythm->getSteps() * stepDuration);//((int)steps->load()*stepDuration);
 
     //TODO cerrar notas en funcino de noteDuration
     timeStep = (timeStep + numSamples) % stepDuration;
-
-
 
 }
 
@@ -373,6 +372,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS", "Steps", 0, 16, 8));
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS", "Events", 0, 16, 4));
     paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION", "Rotation", 0, 16, 0));
+
     // C4 by default (index 48 in the StringArray)
     //paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER", "Note",
     //    juce::StringArray("C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
@@ -390,12 +390,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
 }
 
 void Seq_v4AudioProcessor::setNewNoteNumber(int note) {
-    newNoteNumber = note;
+    noteNumber = note;
 }
 
-
-void Seq_v4AudioProcessor::updateNoteNumber() {
-    currentNoteNumber = newNoteNumber;
+void Seq_v4AudioProcessor::setNewNoteDuration(float duration) {
+    figureNote = duration;
+}
+void Seq_v4AudioProcessor::setNewStepDuration(float duration) {
+    figureStep = duration;
 }
 
 
@@ -406,17 +408,16 @@ void Seq_v4AudioProcessor::updateNoteNumber() {
 void Seq_v4AudioProcessor::convertBPMToTime() {
 
     // para probar en visual comentar esto
-    playHead = this->getPlayHead();
+    /*playHead = this->getPlayHead();
     playHead->getCurrentPosition(currentPositionInfo);
-    int bpm = currentPositionInfo.bpm;
+    int bpm = currentPositionInfo.bpm;*/
 
     // para probar en ableton (DAW que sea) comentar esto
-    //int bpm = 120;
-
+    int bpm = 120;
 
     //FIXME cambiar cmath por la biblioteca de matematica de juce
-    noteDuration = round((((60000 * rate * figureNote) / bpm) / 1000) * 100) / 100;
-    stepDuration = round((((60000 * rate * figureStep) / bpm) / 1000) * 100) / 100;
+    noteDuration = round((((float)(60000 * rate * figureNote) / bpm) / 1000) * 100) / 100;
+    stepDuration = round((((float)(60000 * rate * figureStep) / bpm) / 1000) * 100) / 100;
 }
 
 
@@ -427,11 +428,26 @@ int Seq_v4AudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newN
 
 int Seq_v4AudioProcessor::getIndexFromCurrentSample() {
     int aux = ceil((float)currentSampleInBar / (float)stepDuration);
-    return aux % euclideanRythm.getSteps();
+    return aux % euclideanRythm->getSteps();
 }
 
-EuclideanRythm Seq_v4AudioProcessor::getEuclideanRythm() {
+EuclideanRythmComponent* Seq_v4AudioProcessor::getEuclideanRythm() {
     return euclideanRythm;
 }
 //==============================================================================
+
+void Seq_v4AudioProcessor::processSequencer(int index) {
+    ;
+}
+
+
+
+
+
+
+
+
+
+
+
 

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#define CONST_DURATION_TIME_CONV 1000
+
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
@@ -31,13 +33,13 @@ private:
 
     //==============================================================================
 
-    void paintRythm(juce::Graphics& g);
+    //void paintRythm(juce::Graphics& g);
 
     //==============================================================================
 
     void setSliderParams(juce::Slider& slider);
     void setNoteNumberComboBoxParams();
-
+    void setDurationComboBoxParams(juce::ComboBox& comboBox, string id);
     //==============================================================================
 
     // Listener del comboBox de la nota musical
@@ -49,18 +51,20 @@ private:
     // access the processor object that created it.
     Seq_v4AudioProcessor& audioProcessor;
 
-    // alias para que sea más legible
+    // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-    //using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
     juce::Slider stepsSlider;
     juce::Slider eventsSlider;
     juce::Slider rotationSlider;
-    juce::ComboBox noteNumberComboBox;
     unique_ptr<SliderAttachment> stepsSliderAttachment;
     unique_ptr<SliderAttachment> eventsSliderAttachment;
     unique_ptr<SliderAttachment> rotationSliderAttachment;
-    //unique_ptr< ComboBoxAttachment> noteNumberComboBoxAttachment;
+
+    juce::ComboBox noteNumberComboBox;
+    juce::ComboBox noteDurationComboBox;
+    juce::ComboBox stepDurationComboBox;
+
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Seq_v4AudioProcessorEditor)

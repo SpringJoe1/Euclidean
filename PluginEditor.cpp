@@ -16,7 +16,7 @@ Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor& p)
 
 	setSize(400, 300);
 
-	// alias para que sea más legible
+	// alias para que sea mï¿½s legible
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 	//using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
@@ -33,6 +33,10 @@ Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor& p)
 	noteNumberComboBox.addListener(this);
 	setNoteNumberComboBoxParams();
 
+	noteDurationComboBox.addListener(this);
+	setDurationComboBoxParams(noteDurationComboBox, "NOTE_DURATION_COMBOBOX");
+	stepDurationComboBox.addListener(this);
+	setDurationComboBoxParams(stepDurationComboBox, "STEP_DURATION_COMBOBOX");
 
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
@@ -53,7 +57,7 @@ void Seq_v4AudioProcessorEditor::paint(juce::Graphics& g)
 
 void Seq_v4AudioProcessorEditor::resized()
 {
-	int numOfSliders = 4;
+	int numOfSliders = 6;
 
 	// bounds of the whole pluggin
 	const auto bounds = getLocalBounds().reduced(10);
@@ -73,12 +77,16 @@ void Seq_v4AudioProcessorEditor::resized()
 	eventsSlider.setBounds(stepsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
 	rotationSlider.setBounds(eventsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
 	noteNumberComboBox.setBounds(rotationSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	noteDurationComboBox.setBounds(noteNumberComboBox.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	stepDurationComboBox.setBounds(noteDurationComboBox.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
 
 }
 
 //==============================================================================
 
 void Seq_v4AudioProcessorEditor::setSliderParams(juce::Slider& slider) {
+	//slider.setDoubleClickReturnValue
+	//slider.setNumDecimalPlacesToDisplay
 	slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
 	slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 25);
 	addAndMakeVisible(slider);
@@ -86,6 +94,8 @@ void Seq_v4AudioProcessorEditor::setSliderParams(juce::Slider& slider) {
 
 void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
 
+	noteNumberComboBox.setComponentID("NOTE_NUMBER_COMBOBOX");
+	
 	noteNumberComboBox.addItem("C0", 24);
 	noteNumberComboBox.addItem("C#0", 25);
 	noteNumberComboBox.addItem("D0", 26);
@@ -182,45 +192,73 @@ void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
 	addAndMakeVisible(noteNumberComboBox);
 }
 
+void Seq_v4AudioProcessorEditor::setDurationComboBoxParams(juce::ComboBox& comboBox, string id) {
+
+	comboBox.setComponentID(id);
+
+	// we need the IDs so as we can not store floats,
+	// we add the number x1000 so it is an int, and then we will divide again
+	comboBox.addItem("4", 4 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("2", 2 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1", 1 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1/2", 0.5 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1/4", 0.25 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1/8", 0.125 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1/16", 0.062 * CONST_DURATION_TIME_CONV);
+	comboBox.addItem("1/32", 0.031 * CONST_DURATION_TIME_CONV);
+
+	comboBox.setSelectedId(1 * CONST_DURATION_TIME_CONV); // negras 
+	comboBox.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(comboBox);
+}
+
 //==============================================================================
 
 void Seq_v4AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
 
+	if(comboBoxThatHasChanged->getComponentID() == noteNumberComboBox.getComponentID())
+		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId());
+	if (comboBoxThatHasChanged->getComponentID() == noteDurationComboBox.getComponentID()) {
+		audioProcessor.setNewNoteDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV);
 
-	audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId());
+	}
+	if (comboBoxThatHasChanged->getComponentID() == stepDurationComboBox.getComponentID()) {
+		audioProcessor.setNewStepDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV);
+
+	}
 }
 
 //==============================================================================
 
-void Seq_v4AudioProcessorEditor::paintRythm(juce::Graphics& g) {
-
-	// límites del plugin
-	const auto bounds = getLocalBounds().reduced(10);
-
-	// alto de los segmentos
-	const auto alturaSegmentos = 15;
-
-	// coordenadas (X,Y) donde empezar a pintar 
-	const auto startY = bounds.getBottom() - 5 - alturaSegmentos;
-	const auto startX = 5;
-
-	// numero de segmentos del ritmo
-	const auto numSeg = audioProcessor.getEuclideanRythm().getSteps();
-	// anchura de cada segmento
-	const auto anchoSegmento = (bounds.getWidth() - 10) / numSeg;
-
-	DBG("numSeg " << numSeg);
-
-	for (int i = 0; i < numSeg; i++) {
-		if (audioProcessor.guarrada1) {
-			audioProcessor.guarrada1 = false;
-			g.setColour(juce::Colours::purple);
-			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
-		}
-		else {
-			audioProcessor.guarrada1 = true;
-			g.setColour(juce::Colours::rebeccapurple);
-			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
-		}
-	}
-}
+//void Seq_v4AudioProcessorEditor::paintRythm(juce::Graphics& g) {
+//
+//	// lï¿½mites del plugin
+//	const auto bounds = getLocalBounds().reduced(10);
+//
+//	// alto de los segmentos
+//	const auto alturaSegmentos = 15;
+//
+//	// coordenadas (X,Y) donde empezar a pintar 
+//	const auto startY = bounds.getBottom() - 5 - alturaSegmentos;
+//	const auto startX = 5;
+//
+//	// numero de segmentos del ritmo
+//	const auto numSeg = audioProcessor.getEuclideanRythm().getSteps();
+//	// anchura de cada segmento
+//	const auto anchoSegmento = (bounds.getWidth() - 10) / numSeg;
+//
+//	DBG("numSeg " << numSeg);
+//
+//	for (int i = 0; i < numSeg; i++) {
+//		if (audioProcessor.guarrada1) {
+//			audioProcessor.guarrada1 = false;
+//			g.setColour(juce::Colours::purple);
+//			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
+//		}
+//		else {
+//			audioProcessor.guarrada1 = true;
+//			g.setColour(juce::Colours::rebeccapurple);
+//			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
+//		}
+//	}
+//}

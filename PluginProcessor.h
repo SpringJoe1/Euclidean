@@ -11,19 +11,10 @@
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath> 
-#include "EuclideanRythm.h"
+#include "EuclideanRythmComponent.h"
 #include <map>
 
 using namespace std;
-
-// From midinote 21 to 107
-//const juce::StringArray noteNames = ("C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
-//    "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1", 
-//    "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2", 
-//    "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3", 
-//    "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", 
-//    "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5", 
-//    "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6");
 
 
 //==============================================================================
@@ -77,8 +68,11 @@ public:
 
     //==============================================================================
 
+    EuclideanRythmComponent* getEuclideanRythm();
     void setNewNoteNumber(int note);
-    EuclideanRythm getEuclideanRythm();
+    void setNewNoteDuration(float duration);
+    void setNewStepDuration(float duration);
+
 
     //==============================================================================
 
@@ -90,20 +84,10 @@ private:
     //==============================================================================
 
     void convertBPMToTime();
-    // funcion que saca el angulo de la aguja a partir del sample en el que estamos
-
-    // funciones alv
-    //float getAngleFromCurrentSample();
-    //// funcion que nos devuelve el indice de la nota que tiene que sonar en funcion del
-    //// angulo de la aguja
-    //int getIndexFromAngle();
-    //// funcion que nos devuelve el currentSampleInBar a partir del angulo de la aguja
-    //int getCurrentSamplesFromAngle();
-    //// function that returns the parameter layout of the audio processor value tree state
-
     int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar);
     int getIndexFromCurrentSample();
-    void updateNoteNumber();
+
+    void processSequencer(int index);
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
@@ -113,16 +97,16 @@ private:
     juce::AudioPlayHead* playHead;
     juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
 
+    int numTotalSequencers;
+
     // rythm1
-    EuclideanRythm euclideanRythm;
+    EuclideanRythmComponent* euclideanRythm;
     int index;
     int rotationValue;
-    int currentNoteNumber, newNoteNumber;
+    int noteNumber;
     // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
     map<int, int> notesDurationMap;
     vector<int> notesToDeleteFromMap;
-    // iterador para recorrer el map
-    //map<int, int>::iterator itr;
 
 
     // sample rate
@@ -131,14 +115,14 @@ private:
     int velocity;
 
     // duracion de las notas (blanca, corchea, etc)
-    int figureStep, figureNote;
-    // duración de las notas en número de samples
+    float figureStep, figureNote;
+    // duraciï¿½n de las notas en nï¿½mero de samples
     int stepDuration, noteDuration;
-    // contadores para llevar cuanto lleva sonando el step y la nota actual (en número de samples)
+    // contadores para llevar cuanto lleva sonando el step y la nota actual (en nï¿½mero de samples)
     int timeStep, timeNote;
-    // total de samples de un compás para calcular por donde va la aguja
+    // total de samples de un compï¿½s para calcular por donde va la aguja
     int numSamplesPerBar;
-    // número del sample que acabamos de procesar en el compas
+    // nï¿½mero del sample que acabamos de procesar en el compas
     int currentSampleInBar;
 
     //==============================================================================

@@ -30,7 +30,7 @@ public:
         this->_euclideanRythm = { NULL };
         this->_steps = 0;
         this->_events = 0;
-        this-> _rotation = 0;
+        this->_rotation = 0;
         _euclideanRythm[0] = 0;
     }
 
