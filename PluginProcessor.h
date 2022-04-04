@@ -8,9 +8,12 @@
 
 #pragma once
 
+#define NUM_TOTAL_ETAPAS 4
+
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath> 
+#include <string>
 #include "EuclideanRythmComponent.h"
 #include <map>
 
@@ -68,10 +71,9 @@ public:
 
     //==============================================================================
 
-    EuclideanRythmComponent* getEuclideanRythm();
-    void setNewNoteNumber(int note);
-    void setNewNoteDuration(float duration);
-    void setNewStepDuration(float duration);
+    void setNewNoteNumber(int note, int seqID);
+    void setNewNoteDuration(float duration, int seqID);
+    void setNewStepDuration(float duration, int seqID);
 
 
     //==============================================================================
@@ -83,24 +85,29 @@ private:
 
     //==============================================================================
 
-    void convertBPMToTime();
-    int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar);
-    int getIndexFromCurrentSample();
+    void convertBPMToTime(EuclideanRythmComponent* e);
+    int getBPM();
+    int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSamplesInBar);
+    int getIndexFromCurrentSample(EuclideanRythmComponent* e);
 
-    void processSequencer(int index);
+    void processSequencer(juce::MidiBuffer& midiMessages, EuclideanRythmComponent* euclideanRythm, int sequencerID);
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
 
     //==============================================================================
 
+
+    int numTotalSequencers;
+    map<int, EuclideanRythmComponent*> euclideanRythms;
+    int numSamples;
+    int bpm;
+
     juce::AudioPlayHead* playHead;
     juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
 
-    int numTotalSequencers;
-
     // rythm1
-    EuclideanRythmComponent* euclideanRythm;
+    EuclideanRythmComponent* euclideanRythmComponent;
     int index;
     int rotationValue;
     int noteNumber;
@@ -123,7 +130,7 @@ private:
     // total de samples de un comp�s para calcular por donde va la aguja
     int numSamplesPerBar;
     // n�mero del sample que acabamos de procesar en el compas
-    int currentSampleInBar;
+    // int currentSampleInBar;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Seq_v4AudioProcessor)

@@ -21,9 +21,9 @@ Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor& p)
 	//using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
 	// memory allocation
-	stepsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS", stepsSlider);
-	eventsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS", eventsSlider);
-	rotationSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION", rotationSlider);
+	stepsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS0", stepsSlider);
+	eventsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS0", eventsSlider);
+	rotationSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION0", rotationSlider);
 	//noteNumberComboBoxAttachment = make_unique<ComboBoxAttachment>(audioProcessor.apvts, "NOTE_NUMBER", noteNumberComboBox);
 
 	setSliderParams(stepsSlider);
@@ -34,9 +34,9 @@ Seq_v4AudioProcessorEditor::Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor& p)
 	setNoteNumberComboBoxParams();
 
 	noteDurationComboBox.addListener(this);
-	setDurationComboBoxParams(noteDurationComboBox, "NOTE_DURATION_COMBOBOX");
+	setDurationComboBoxParams(noteDurationComboBox, "NOTE_DURATION_COMBOBOX0");
 	stepDurationComboBox.addListener(this);
-	setDurationComboBoxParams(stepDurationComboBox, "STEP_DURATION_COMBOBOX");
+	setDurationComboBoxParams(stepDurationComboBox, "STEP_DURATION_COMBOBOX0");
 
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
@@ -94,8 +94,8 @@ void Seq_v4AudioProcessorEditor::setSliderParams(juce::Slider& slider) {
 
 void Seq_v4AudioProcessorEditor::setNoteNumberComboBoxParams() {
 
-	noteNumberComboBox.setComponentID("NOTE_NUMBER_COMBOBOX");
-	
+	noteNumberComboBox.setComponentID("NOTE_NUMBER_COMBOBOX0");
+
 	noteNumberComboBox.addItem("C0", 24);
 	noteNumberComboBox.addItem("C#0", 25);
 	noteNumberComboBox.addItem("D0", 26);
@@ -216,15 +216,25 @@ void Seq_v4AudioProcessorEditor::setDurationComboBoxParams(juce::ComboBox& combo
 
 void Seq_v4AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
 
-	if(comboBoxThatHasChanged->getComponentID() == noteNumberComboBox.getComponentID())
-		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId());
-	if (comboBoxThatHasChanged->getComponentID() == noteDurationComboBox.getComponentID()) {
-		audioProcessor.setNewNoteDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV);
+	DBG("!!!! COMBO BOX !!!");
+	juce::String componentID = comboBoxThatHasChanged->getComponentID();
+	DBG("juce::String componentID " << componentID);
+	char componentIDLast = componentID.toStdString().back();
+	DBG("char componentIDLast " << componentIDLast);
+	int seqID = stoi(string(1, componentIDLast));
+	DBG("int componentIDLastInt " << componentIDLast);
 
+	if (seqID < 0 || seqID >= NUM_TOTAL_ETAPAS){
+		return;
 	}
-	if (comboBoxThatHasChanged->getComponentID() == stepDurationComboBox.getComponentID()) {
-		audioProcessor.setNewStepDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV);
 
+	if (componentID == noteNumberComboBox.getComponentID())
+		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId(), seqID);
+	if (componentID == noteDurationComboBox.getComponentID()) {
+		audioProcessor.setNewNoteDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
+	}
+	if (componentID == stepDurationComboBox.getComponentID()) {
+		audioProcessor.setNewStepDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 	}
 }
 

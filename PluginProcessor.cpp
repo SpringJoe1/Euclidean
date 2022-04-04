@@ -178,33 +178,41 @@ void Seq_v4AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-
-    numTotalSequencers = 0;
-
-    //TODO de momento tanto los stpes como las notas son negras
-    // negra = 1
-    figureStep = 1;
-    figureNote = 1;
     rate = static_cast<float> (sampleRate);
-    convertBPMToTime();
+    bpm = getBPM();
 
 
-    timeStep = stepDuration;
-    timeNote = 0;
-
-
-
+    // TODO -- poner sliders en cada seq de la velocity
     velocity = 127;
 
-    // TODO cambiar el 4
-    euclideanRythm = new EuclideanRythmComponent(8, 4, 0);
 
-    index = 0;
-    rotationValue = 0;
-    noteNumber = 72;  // C4
+    numTotalSequencers = 0;
+    euclideanRythms.insert({ 0, new EuclideanRythmComponent(8, 4, 0) });
 
-    numSamplesPerBar = 0;
-    currentSampleInBar = 0;
+    // negra = 1
+    euclideanRythms.at(0)->setFigureStep(1);
+    euclideanRythms.at(0)->setFigureNote(1);
+    convertBPMToTime(euclideanRythms.at(0));
+
+
+
+    euclideanRythms.at(0)->setTimeStep(euclideanRythms.at(0)->getStepDuration());
+    euclideanRythms.at(0)->setTimeNote(0);
+
+
+    euclideanRythms.at(0)->setIndex(0);
+
+    euclideanRythms.at(0)->setRotationValue(0);
+
+    euclideanRythms.at(0)->setNoteNumber(72);   // C4
+
+
+    euclideanRythms.at(0)->setNumSamplesPerBar(0);
+
+    euclideanRythms.at(0)->setCurrentSampleInBar(0);
+
+    DBG("FIN DEL PREPARE TO PLAY ");
+
 }
 
 void Seq_v4AudioProcessor::releaseResources()
@@ -243,86 +251,13 @@ void Seq_v4AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 {
 
     // however we use the buffer to get timing information
-    auto numSamples = buffer.getNumSamples();
+    numSamples = buffer.getNumSamples();
 
-    convertBPMToTime();
-
-    // actualizamos todo el rato el n�mero de samples totales del comp�s 
-    // para tener la aguja actualizada
-    numSamplesPerBar = euclideanRythm->getSteps() * stepDuration;
-
-    int steps = *apvts.getRawParameterValue("STEPS");
-    int events = *apvts.getRawParameterValue("EVENTS");
-    int newRotation = *apvts.getRawParameterValue("ROTATION");
-
-    euclideanRythm->setEuclideanRythm(steps, events, rotationValue);
-
-    // check if it has to rotate, and if it has to do it to the right or to the left
-    if (newRotation > rotationValue) {
-        DBG("antes rotation = " << rotationValue << " on " << euclideanRythm->getList());
-        euclideanRythm->rotateRight(newRotation - rotationValue);
-        rotationValue = newRotation;
-        DBG("despues rotation = " << rotationValue << " on " << euclideanRythm->getList());
-
+    bpm = getBPM();
+    for (auto itr = euclideanRythms.begin(); itr != euclideanRythms.end(); ++itr) {
+        // midiBuffer, puntero a EuclideanSequencerComponent, ID del objeto
+        processSequencer(midiMessages, itr->second, itr->first);
     }
-    else if (newRotation < rotationValue) {
-        DBG("antes rotation = " << rotationValue << " on " << euclideanRythm->getList());
-        euclideanRythm->rotateLeft(rotationValue - newRotation);
-        rotationValue = newRotation;
-        DBG("despues rotation = " << rotationValue << " on " << euclideanRythm->getList());
-    }
-
-
-    // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
-    // cs2 y ts2 son el current y el total samples despues de cambiarlos
-    currentSampleInBar = getCurrentSampleUpdated(numSamplesPerBar, stepDuration * euclideanRythm->getSteps());
-    // a partir del current sample que estamos procesando, sacamos el index del ritmo
-    index = getIndexFromCurrentSample();
-
-    midiMessages.clear();
-
-    // comprobamos el tiempo que lleva durando cada nota
-    // si ha excedido >= noteDuration se manda un noteOff de esa nota
-    // en caso contrario se actualiza el tiempo que lleva sonando
-    for (auto itr = notesDurationMap.begin(); itr != notesDurationMap.end(); ++itr) {
-        if (itr->second + numSamples >= noteDuration) {
-            auto offset = juce::jmax(0, juce::jmin((int)(noteDuration - itr->second), numSamples - 1));
-            auto message = juce::MidiMessage::noteOff(midiChannel, itr->first);
-            midiMessages.addEvent(message, offset);
-            notesToDeleteFromMap.push_back(itr->first);
-        }
-        else {
-            itr->second = (itr->second + numSamples) % noteDuration;
-        }
-    }
-
-    // vector auxiliar para borrar las notas del mapa que han dejado de sonar
-    for (auto itr = notesToDeleteFromMap.begin(); itr != notesToDeleteFromMap.end(); ++itr) {
-        notesDurationMap.erase(*itr);
-    }
-    notesToDeleteFromMap.clear();
-
-    if ((timeStep + numSamples) >= stepDuration) {
-
-        auto offset = juce::jmax(0, juce::jmin((int)(stepDuration - timeStep), numSamples - 1));
-
-        // empieza a sonar una nota lanzando el noteOn
-        // a�adimos 
-        if (euclideanRythm->getEuclideanRythm()[index] == 1) {
-            int note = noteNumber;
-            auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
-            midiMessages.addEvent(message, offset);
-            DBG(getMessageInfo(message) << " index " << index << " steps " << steps << " MIDInote " << note);
-            notesDurationMap.insert({ note, numSamples - offset });
-        }
-    }
-
-    // actualizamos el numero de sample que acabamos de procesar
-    currentSampleInBar = (currentSampleInBar + numSamples) % (euclideanRythm->getSteps() * stepDuration);//((int)steps->load()*stepDuration);
-
-    //TODO cerrar notas en funcino de noteDuration
-    timeStep = (timeStep + numSamples) % stepDuration;
-
 }
 
 //==============================================================================
@@ -369,9 +304,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
     vector<unique_ptr<juce::RangedAudioParameter>> paramsVector;
 
     // We add elements to the vector
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS", "Steps", 0, 16, 8));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS", "Events", 0, 16, 4));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION", "Rotation", 0, 16, 0));
+    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS0", "Steps", 0, 16, 8));
+    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS0", "Events", 0, 16, 4));
+    paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION0", "Rotation", 0, 16, 0));
 
     // C4 by default (index 48 in the StringArray)
     //paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER", "Note",
@@ -389,55 +324,152 @@ juce::AudioProcessorValueTreeState::ParameterLayout Seq_v4AudioProcessor::create
 
 }
 
-void Seq_v4AudioProcessor::setNewNoteNumber(int note) {
-    noteNumber = note;
+void Seq_v4AudioProcessor::setNewNoteNumber(int value, int seqID) {
+    DBG("notevalue " << value << " seqID " << seqID);
+    if (seqID >= 0 && seqID < NUM_TOTAL_ETAPAS) {
+        euclideanRythms.at(seqID)->setNoteNumber(value);
+    }
+
 }
 
-void Seq_v4AudioProcessor::setNewNoteDuration(float duration) {
-    figureNote = duration;
+void Seq_v4AudioProcessor::setNewNoteDuration(float duration, int seqID) {
+    if (seqID >= 0 && seqID < NUM_TOTAL_ETAPAS) {
+        euclideanRythms.at(seqID)->setFigureNote(duration);
+    }
 }
-void Seq_v4AudioProcessor::setNewStepDuration(float duration) {
-    figureStep = duration;
+void Seq_v4AudioProcessor::setNewStepDuration(float duration, int seqID) {
+    if (seqID >= 0 && seqID < NUM_TOTAL_ETAPAS) {
+        euclideanRythms.at(seqID)->setFigureStep(duration);
+    }
 }
-
-
 //==============================================================================
 
-// Funciones auxiliares
-//esta funcion saca el tiempo en funcion de los bpms
-void Seq_v4AudioProcessor::convertBPMToTime() {
-
+int Seq_v4AudioProcessor::getBPM() {
+    
+    int bpm_aux;
+    
     // para probar en visual comentar esto
     /*playHead = this->getPlayHead();
     playHead->getCurrentPosition(currentPositionInfo);
-    int bpm = currentPositionInfo.bpm;*/
+    bpm_aux = currentPositionInfo.bpm;*/
 
     // para probar en ableton (DAW que sea) comentar esto
-    int bpm = 120;
+    bpm_aux = 120;
 
-    //FIXME cambiar cmath por la biblioteca de matematica de juce
-    noteDuration = round((((float)(60000 * rate * figureNote) / bpm) / 1000) * 100) / 100;
-    stepDuration = round((((float)(60000 * rate * figureStep) / bpm) / 1000) * 100) / 100;
+    return bpm_aux;
 }
 
+// Funciones auxiliares
+//esta funcion saca el tiempo en funcion de los bpms
+void Seq_v4AudioProcessor::convertBPMToTime(EuclideanRythmComponent* e) {
+
+    e->setNoteDuration(round((((float)(60000 * rate * e->getFigureNote()) / bpm) / 1000) * 100) / 100);
+    e->setStepDuration(round((((float)(60000 * rate * e->getFigureStep()) / bpm) / 1000) * 100) / 100);
+
+}
 
 // funcion que refresca el valor de currentSample 
-int Seq_v4AudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar) {
+int Seq_v4AudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSampleInBar) {
     return ((float)newNumSamplesPerBar / (float)numSamplesPerBar) * (float)currentSampleInBar;
 }
 
-int Seq_v4AudioProcessor::getIndexFromCurrentSample() {
-    int aux = ceil((float)currentSampleInBar / (float)stepDuration);
-    return aux % euclideanRythm->getSteps();
+int Seq_v4AudioProcessor::getIndexFromCurrentSample(EuclideanRythmComponent* e) {
+    int aux = ceil((float)e->getCurrentSampleInBar() / (float)e->getStepDuration());
+    return aux % e->get_steps();
 }
 
-EuclideanRythmComponent* Seq_v4AudioProcessor::getEuclideanRythm() {
-    return euclideanRythm;
-}
+
 //==============================================================================
 
-void Seq_v4AudioProcessor::processSequencer(int index) {
-    ;
+void Seq_v4AudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRythmComponent* euclideanRythm, int ID) {
+
+    convertBPMToTime(euclideanRythm);
+
+    // actualizamos todo el rato el n�mero de samples totales del comp�s 
+    // para tener la aguja actualizada
+    euclideanRythm->setNumSamplesPerBar(euclideanRythm->get_steps() * euclideanRythm->getStepDuration());
+
+    int steps = *apvts.getRawParameterValue("STEPS" + to_string(ID));
+    int events = *apvts.getRawParameterValue("EVENTS" + to_string(ID));
+    int newRotation = *apvts.getRawParameterValue("ROTATION" + to_string(ID));
+    
+    euclideanRythm->set_euclideanRythm(steps, events, euclideanRythm->getRotationValue());
+
+
+    // check if it has to rotate, and if it has to do it to the right or to the left
+    if (newRotation > euclideanRythm->getRotationValue()) {
+        DBG("antes rotation = " << euclideanRythm->getRotationValue() << " on " << euclideanRythm->getList());
+        euclideanRythm->rotateRight(newRotation - euclideanRythm->getRotationValue());
+        euclideanRythm->setRotationValue(newRotation);
+        DBG("despues rotation = " << euclideanRythm->getRotationValue() << " on " << euclideanRythm->getList());
+
+    }
+    else if (newRotation < euclideanRythm->getRotationValue()) {
+        DBG("antes rotation = " << euclideanRythm->getRotationValue() << " on " << euclideanRythm->getList());
+        euclideanRythm->rotateLeft(euclideanRythm->getRotationValue() - newRotation);
+        euclideanRythm->setRotationValue(newRotation);
+        DBG("despues rotation = " << euclideanRythm->getRotationValue() << " on " << euclideanRythm->getList());
+    }
+
+
+    // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
+    // cs2 y ts2 son el current y el total samples despues de cambiarlos  
+    euclideanRythm->setCurrentSampleInBar(getCurrentSampleUpdated(euclideanRythm->getNumSamplesPerBar(),
+        euclideanRythm->getStepDuration() * euclideanRythm->get_steps(),
+        euclideanRythm->getCurrentSampleInBar()));
+    
+    // a partir del current sample que estamos procesando, sacamos el index del ritmo
+    euclideanRythm->setIndex(getIndexFromCurrentSample(euclideanRythm));
+
+    // TODO -- revisar ESTO DEBO HACERLO ?
+    midiMessages.clear();
+
+    // comprobamos el tiempo que lleva durando cada nota
+    // si ha excedido >= noteDuration se manda un noteOff de esa nota
+    // en caso contrario se actualiza el tiempo que lleva sonando
+    for (auto itr = euclideanRythm->notesDurationMap.begin(); itr != euclideanRythm->notesDurationMap.end(); ++itr) {
+        if (itr->second + numSamples >= euclideanRythm->getNoteDuration()) {
+            auto offset = juce::jmax(0, juce::jmin((int)(euclideanRythm->getNoteDuration() - itr->second), numSamples - 1));
+            auto message = juce::MidiMessage::noteOff(midiChannel, itr->first);
+            midiMessages.addEvent(message, offset);
+            euclideanRythm->notesToDeleteFromMap.push_back(itr->first);
+        }
+        else {
+            itr->second = (itr->second + numSamples) % euclideanRythm->getNoteDuration();
+        }
+    }
+
+    // vector auxiliar para borrar las notas del mapa que han dejado de sonar
+    for (auto itr = euclideanRythm->notesToDeleteFromMap.begin(); itr != euclideanRythm->notesToDeleteFromMap.end(); ++itr) {
+        euclideanRythm->notesDurationMap.erase(*itr);
+    }
+    euclideanRythm->notesToDeleteFromMap.clear();
+
+    if ((euclideanRythm->getTimeStep() + numSamples) >= euclideanRythm->getStepDuration()) {
+
+        auto offset = juce::jmax(0, juce::jmin((int)(euclideanRythm->getStepDuration() - euclideanRythm->getTimeStep()), numSamples - 1));
+
+        // empieza a sonar una nota lanzando el noteOn
+        // a�adimos 
+        if (euclideanRythm->get_euclideanRythm().at(euclideanRythm->getIndex()) == 1) {
+            int note = euclideanRythm->getNoteNumber();
+            auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
+            DBG(getMessageInfo(message) << " index " << euclideanRythm->getIndex() << " steps " << steps << " MIDInote " << note);
+            midiMessages.addEvent(message, offset);
+            euclideanRythm->notesDurationMap.insert({ note, numSamples - offset });
+        }
+    }
+
+
+    // actualizamos el numero de sample que acabamos de procesar
+    euclideanRythm->setCurrentSampleInBar((euclideanRythm->getCurrentSampleInBar() + numSamples) %
+        (euclideanRythm->get_steps() * euclideanRythm->getStepDuration()));//((int)steps->load()*stepDuration);
+
+    //TODO cerrar notas en funcino de noteDuration
+    
+    euclideanRythm->setTimeStep((euclideanRythm->getTimeStep() + numSamples) %
+        euclideanRythm->getStepDuration());
+
 }
 
 

@@ -41,16 +41,45 @@ public:
     //==============================================================================
 
     // Atributos principales 
-    int getSteps();
-    int getEvents();
-    vector<int> getEuclideanRythm();
+    int get_steps();
+    int get_events();
+    int get_rotation();
+    vector<int> get_euclideanRythm();
     juce::String getList();
-    void setEuclideanRythm(int steps, int events, int rotation);
-    void setEvents(int newEvents);
-    void setSteps(int newSteps);
+
+    void set_euclideanRythm(int steps, int events, int rotation);
+    void set_events(int newEvents);
+    void set_steps(int newSteps);
+    void set_rotation(int rotation);
 
     // Atributos auxiliares para realizar el processBlock() 
+    int getIndex();
+    int getRotationValue();
+    int getNoteNumber();
+    map<int, int> getNotesDurationMap();
+    vector<int> getNotesToDeleteFromMap();
+    float getFigureStep();
+    float getFigureNote();
+    int getStepDuration();
+    int getNoteDuration();
+    int getTimeStep();
+    int getTimeNote();
+    int getNumSamplesPerBar();
+    int getCurrentSampleInBar();
 
+    void setIndex(int value);
+    void setRotationValue(int value);
+    void setNoteNumber(int value);
+    //void setNotesDurationMap();
+    //void setNotesToDeleteFromMap();
+    void setFigureStep(float value);
+    void setFigureNote(float value);
+    void setStepDuration(int value);
+    void setNoteDuration(int value);
+    void setTimeStep(int value);
+    void setTimeNote(int value);
+    void setNumSamplesPerBar(int samples);
+    void setCurrentSampleInBar(int value);
 
     //==============================================================================
     // other aux functions
@@ -60,6 +89,14 @@ public:
     void rotateLeft(int times);
     void showList();
 
+    //==============================================================================
+    // TODO -- Atributos publicos (cambiar a private)
+    //==============================================================================
+
+
+    // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
+    map<int, int> notesDurationMap;
+    vector<int> notesToDeleteFromMap;
 
 private:
 
@@ -83,9 +120,7 @@ private:
     // valor de la nota midi (entre C0 y B6 que son la 24 y 106)
     int noteNumber;
     
-    // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
-    map<int, int> notesDurationMap;
-    vector<int> notesToDeleteFromMap;
+
 
     // duracion de las notas (blanca, corchea, etc)
     float figureStep, figureNote;
@@ -95,7 +130,7 @@ private:
     int timeStep, timeNote;
     // total de samples de un compas para calcular por donde va la aguja
     int numSamplesPerBar;
-    // n�mero del sample que acabamos de procesar en el compas
+    // numero del sample que acabamos de procesar en el compas
     int currentSampleInBar;
 
 
