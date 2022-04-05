@@ -18,12 +18,12 @@ using namespace std;
 //==============================================================================
 /**
 */
-class Seq_v4AudioProcessorEditor : public juce::AudioProcessorEditor,
+class EucSeq_MultiStageAudioProcessorEditor : public juce::AudioProcessorEditor,
     public juce::ComboBox::Listener
 {
 public:
-    Seq_v4AudioProcessorEditor(Seq_v4AudioProcessor&);
-    ~Seq_v4AudioProcessorEditor() override;
+    EucSeq_MultiStageAudioProcessorEditor(EucSeq_MultiStageAudioProcessor&);
+    ~EucSeq_MultiStageAudioProcessorEditor() override;
 
     //==============================================================================
     void paint(juce::Graphics&) override;
@@ -33,23 +33,23 @@ private:
 
     //==============================================================================
 
-    //void paintRythm(juce::Graphics& g);
+    //void paintRhythm(juce::Graphics& g);
 
     //==============================================================================
 
     void setSliderParams(juce::Slider& slider);
-    void setNoteNumberComboBoxParams();
+    void setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id);
     void setDurationComboBoxParams(juce::ComboBox& comboBox, string id);
     //==============================================================================
 
-    // Listener del comboBox de la nota musical
+    // Listener del comboBox 
     void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
     //==============================================================================
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    Seq_v4AudioProcessor& audioProcessor;
+    EucSeq_MultiStageAudioProcessor& audioProcessor;
 
     // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -65,7 +65,33 @@ private:
     juce::ComboBox noteDurationComboBox;
     juce::ComboBox stepDurationComboBox;
 
+    /////////////////////////////////////////////////////////////////////
+    // seq2
+    juce::Slider stepsSlider1;
+    juce::Slider eventsSlider1;
+    juce::Slider rotationSlider1;
+    unique_ptr<SliderAttachment> stepsSliderAttachment1;
+    unique_ptr<SliderAttachment> eventsSliderAttachment1;
+    unique_ptr<SliderAttachment> rotationSliderAttachment1;
+
+    juce::ComboBox noteNumberComboBox1;
+    juce::ComboBox noteDurationComboBox1;
+    juce::ComboBox stepDurationComboBox1;
+
+    /////////////////////////////////////////////////////////////////////
+    // seq3
+    juce::Slider stepsSlider2;
+    juce::Slider eventsSlider2;
+    juce::Slider rotationSlider2;
+    unique_ptr<SliderAttachment> stepsSliderAttachment2;
+    unique_ptr<SliderAttachment> eventsSliderAttachment2;
+    unique_ptr<SliderAttachment> rotationSliderAttachment2;
+
+    juce::ComboBox noteNumberComboBox2;
+    juce::ComboBox noteDurationComboBox2;
+    juce::ComboBox stepDurationComboBox2;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Seq_v4AudioProcessorEditor)
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessorEditor)
 };
