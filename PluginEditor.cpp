@@ -14,78 +14,50 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
-	setSize(500, 500);
 
 	// alias para que sea m�s legible
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
-	// memory allocation
-	stepsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS0", stepsSlider);
-	eventsSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS0", eventsSlider);
-	rotationSliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION0", rotationSlider);
-	velocitySliderAttachment = make_unique<SliderAttachment>(audioProcessor.apvts, "VELOCITY0", velocitySlider);
-
-	setSliderParams(stepsSlider);
-	//stepsSlider.setEnabled(false);
-	setSliderParams(eventsSlider);
-	setSliderParams(rotationSlider);
-	setSliderParams(velocitySlider);
-
-	noteNumberComboBox.addListener(this);
-	setNoteNumberComboBoxParams(noteNumberComboBox, "NOTE_NUMBER_COMBOBOX0");
-
-	noteDurationComboBox.addListener(this);
-	setDurationComboBoxParams(noteDurationComboBox, "NOTE_DURATION_COMBOBOX0");
-	stepDurationComboBox.addListener(this);
-	setDurationComboBoxParams(stepDurationComboBox, "STEP_DURATION_COMBOBOX0");
-
-
-	///////////////////////////////////////////////////////////////////7
-	// seq2
-
+	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
+		
 		// memory allocation
-	stepsSliderAttachment1 = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS1", stepsSlider1);
-	eventsSliderAttachment1 = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS1", eventsSlider1);
-	rotationSliderAttachment1 = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION1", rotationSlider1);
-	velocitySliderAttachment1 = make_unique<SliderAttachment>(audioProcessor.apvts, "VELOCITY1", velocitySlider1);
+		stepsSliders.insert({ i, new juce::Slider()});
+		stepsSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS" + to_string(i), (*stepsSliders.at(i))) });
+		
+		eventsSliders.insert({ i, new juce::Slider()});
+		eventsSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS" + to_string(i), (*eventsSliders.at(i))) });
+		
+		rotationSliders.insert({ i, new juce::Slider()});
+		rotationSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION" + to_string(i), (*rotationSliders.at(i))) });
+		
+		velocitySliders.insert({ i, new juce::Slider()});
+		velocitySliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "VELOCITY" + to_string(i), (*velocitySliders.at(i))) });
+		
+		gateSliders.insert({ i, new juce::Slider()});
+		gateSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "GATE" + to_string(i), (*gateSliders.at(i))) });
 
-	setSliderParams(stepsSlider1);
-	setSliderParams(eventsSlider1);
-	setSliderParams(rotationSlider1);
-	setSliderParams(velocitySlider1);
 
-	noteNumberComboBox1.addListener(this);
-	setNoteNumberComboBoxParams(noteNumberComboBox1, "NOTE_NUMBER_COMBOBOX1");
+		setSliderParams(*stepsSliders.at(0));
+		//stepsSlider.setEnabled(false);
+		setSliderParams(*eventsSliders.at(0));
+		setSliderParams(*rotationSliders.at(0));
+		setSliderParams(*velocitySliders.at(0));
+		setSliderParams(*gateSliders.at(0));
 
-	noteDurationComboBox1.addListener(this);
-	setDurationComboBoxParams(noteDurationComboBox1, "NOTE_DURATION_COMBOBOX1");
-	stepDurationComboBox1.addListener(this);
-	setDurationComboBoxParams(stepDurationComboBox1, "STEP_DURATION_COMBOBOX1");
+		noteNumberComboBoxes.insert({ i, new juce::ComboBox() });
+		(*noteNumberComboBoxes.at(i)).addListener(this);
+		setNoteNumberComboBoxParams(*noteNumberComboBoxes.at(i), "NOTE_NUMBER_COMBOBOX" + to_string(i));
 
-	///////////////////////////////////////////////////////////////////7
-	// seq3
+		stepDurationComboBoxes.insert({ i, new juce::ComboBox() });
+		(*stepDurationComboBoxes.at(i)).addListener(this);
+		setDurationComboBoxParams(*stepDurationComboBoxes.at(i), "STEP_DURATION_COMBOBOX" + to_string(i));
 
-	// memory allocation
-	stepsSliderAttachment2 = make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS2", stepsSlider2);
-	eventsSliderAttachment2 = make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS2", eventsSlider2);
-	rotationSliderAttachment2 = make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION2", rotationSlider2);
-	velocitySliderAttachment2 = make_unique<SliderAttachment>(audioProcessor.apvts, "VELOCITY2", velocitySlider2);
-
-	setSliderParams(stepsSlider2);
-	setSliderParams(eventsSlider2);
-	setSliderParams(rotationSlider2);
-	setSliderParams(velocitySlider2);
-
-	noteNumberComboBox2.addListener(this);
-	setNoteNumberComboBoxParams(noteNumberComboBox2, "NOTE_NUMBER_COMBOBOX2");
-
-	noteDurationComboBox2.addListener(this);
-	setDurationComboBoxParams(noteDurationComboBox2, "NOTE_DURATION_COMBOBOX2");
-	stepDurationComboBox2.addListener(this);
-	setDurationComboBoxParams(stepDurationComboBox2, "STEP_DURATION_COMBOBOX2");
-
+	}
+	
+	setSize(500, 400);
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
+
 
 }
 
@@ -103,6 +75,8 @@ void EucSeq_MultiStageAudioProcessorEditor::paint(juce::Graphics& g)
 
 void EucSeq_MultiStageAudioProcessorEditor::resized()
 {
+
+
 	int numOfComponents = 7;
 	int numOfStages = 4;
 
@@ -115,38 +89,22 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 	// alto del slider
 	const auto sliderHeight = bounds.getHeight() / numOfStages - padding;
 	// donde empieza el primer slider eje X
-	const auto sliderStartX = 0;
+	auto sliderStartX = 0;
 	// donde empieza el primer slider eje Y
-	const auto sliderStartY = 0;
+	auto sliderStartY = 0;
 
-	// now we set de bounds
-	stepsSlider.setBounds(sliderStartX, sliderStartY, sliderWidth, sliderHeight);
-	eventsSlider.setBounds(stepsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-	rotationSlider.setBounds(eventsSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-	velocitySlider.setBounds(rotationSlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-	noteNumberComboBox.setBounds(velocitySlider.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-	noteDurationComboBox.setBounds(noteNumberComboBox.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
-	stepDurationComboBox.setBounds(noteDurationComboBox.getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
+		
+		(*stepsSliders.at(i)).setBounds(sliderStartX, sliderStartY, sliderWidth, sliderHeight);
+		(*eventsSliders.at(i)).setBounds((*stepsSliders.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+		(*rotationSliders.at(i)).setBounds((*eventsSliders.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+		(*velocitySliders.at(i)).setBounds((*rotationSliders.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+		(*gateSliders.at(i)).setBounds((*velocitySliders.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+		(*noteNumberComboBoxes.at(i)).setBounds((*gateSliders.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
+		(*stepDurationComboBoxes.at(i)).setBounds((*noteNumberComboBoxes.at(i)).getRight() + padding, sliderStartY, sliderWidth, sliderHeight);
 
-	//////////////////////////////////////////////////
-	// seq2
-	stepsSlider1.setBounds(sliderStartX, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	eventsSlider1.setBounds(stepsSlider1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	rotationSlider1.setBounds(eventsSlider1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	velocitySlider1.setBounds(rotationSlider1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	noteNumberComboBox1.setBounds(velocitySlider1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	noteDurationComboBox1.setBounds(noteNumberComboBox1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-	stepDurationComboBox1.setBounds(noteDurationComboBox1.getRight() + padding, sliderStartY + sliderHeight + padding, sliderWidth, sliderHeight);
-
-	//////////////////////////////////////////////////
-	// seq3
-	stepsSlider2.setBounds(sliderStartX, sliderStartY + 2*(sliderHeight + padding), sliderWidth, sliderHeight);
-	eventsSlider2.setBounds(stepsSlider2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
-	rotationSlider2.setBounds(eventsSlider2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
-	velocitySlider2.setBounds(rotationSlider2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
-	noteNumberComboBox2.setBounds(velocitySlider2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
-	noteDurationComboBox2.setBounds(noteNumberComboBox2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
-	stepDurationComboBox2.setBounds(noteDurationComboBox2.getRight() + padding, sliderStartY + 2 * (sliderHeight + padding), sliderWidth, sliderHeight);
+		sliderStartY += sliderHeight + padding;
+	}
 
 }
 
@@ -309,13 +267,9 @@ void EucSeq_MultiStageAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comb
 	if (componentIDWithoutID == "NOTE_NUMBER_COMBOBOX")
 		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId(), seqID);
 	
-	// Si es el caso del combobox de NOTE_DURATION_COMBOBOX
-	if (componentIDWithoutID == "NOTE_DURATION_COMBOBOX")
-		audioProcessor.setNewNoteDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
-	
 	// Si es el caso del combobox de STEP_DURATION_COMBOBOX
 	if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
-		audioProcessor.setNewStepDuration((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
+		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 }
 
 //==============================================================================

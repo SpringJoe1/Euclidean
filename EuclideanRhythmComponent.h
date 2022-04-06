@@ -31,7 +31,7 @@ public:
 
     EuclideanRhythmComponent();
     EuclideanRhythmComponent(int steps, int events, float rate, int bpmParam, int rotationParam = 0,
-        int velocityParam = 127, int figureStepParam = 1, int figureNoteParam = 1, int noteNumberParam = 72);
+        int velocityParam = 127, int gateParam = 100, int figureStepParam = 1, int noteNumberParam = 72);
     ~EuclideanRhythmComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -46,6 +46,7 @@ public:
     int get_events();
     int get_rotation();
     int get_velocity();
+    int get_gate();
     vector<int> get_euclideanRhythm();
     juce::String getList();
 
@@ -55,6 +56,7 @@ public:
     void set_steps(int newSteps);
     void set_rotation(int rotation);
     void set_velocity(int value);
+    void set_gate(int value);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
@@ -62,7 +64,6 @@ public:
     map<int, int> getNotesDurationMap();
     vector<int> getNotesToDeleteFromMap();
     float getFigureStep();
-    float getFigureNote();
     int getStepDuration();
     int getNoteDuration();
     int getTimeStep();
@@ -75,7 +76,6 @@ public:
     //void setNotesDurationMap();
     //void setNotesToDeleteFromMap();
     void setFigureStep(float value);
-    void setFigureNote(float value);
     void setStepDuration(int value);
     void setNoteDuration(int value);
     void setTimeStep(int value);
@@ -115,6 +115,7 @@ private:
     int _events;
     int _rotation;
     int _velocity;
+    int _gate;
 
     //==============================================================================
     // Atributos auxiliares para realizar el processBlock() 
@@ -122,15 +123,13 @@ private:
 
     // indice de la nota que va a ser procesada
     int index;
-    // valor de la rotacion actual
-    int rotationValue;
     // valor de la nota midi (entre C0 y B6 que son la 24 y 106)
     int noteNumber;
     
 
 
-    // duracion de las notas (blanca, corchea, etc)
-    float figureStep, figureNote;
+    // duracion de los steps (blanca, corchea, etc)
+    float figureStep;
     // duracion de las notas en numero de samples
     int stepDuration, noteDuration;
     // contadores para llevar cuanto lleva sonando el step y la nota actual (en numero de samples)

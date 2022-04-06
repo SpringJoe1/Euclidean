@@ -54,50 +54,22 @@ private:
     // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
-    juce::Slider stepsSlider;
-    juce::Slider eventsSlider;
-    juce::Slider rotationSlider;
-    juce::Slider velocitySlider;
-    unique_ptr<SliderAttachment> stepsSliderAttachment;
-    unique_ptr<SliderAttachment> eventsSliderAttachment;
-    unique_ptr<SliderAttachment> rotationSliderAttachment;
-    unique_ptr<SliderAttachment> velocitySliderAttachment;
+    map<int, juce::Slider*> stepsSliders;
+    map<int, juce::Slider*> eventsSliders;
+    map<int, juce::Slider*> rotationSliders;
+    map<int, juce::Slider*> velocitySliders;
+    map<int, juce::Slider*> gateSliders;
 
-    juce::ComboBox noteNumberComboBox;
-    juce::ComboBox noteDurationComboBox;
-    juce::ComboBox stepDurationComboBox;
+    map<int, unique_ptr<SliderAttachment>> stepsSliderAttachments;
+    map<int, unique_ptr<SliderAttachment>> eventsSliderAttachments;
+    map<int, unique_ptr<SliderAttachment>> rotationSliderAttachments;
+    map<int, unique_ptr<SliderAttachment>> velocitySliderAttachments;
+    map<int, unique_ptr<SliderAttachment>> gateSliderAttachments;
 
-    /////////////////////////////////////////////////////////////////////
-    // seq2
-    juce::Slider stepsSlider1;
-    juce::Slider eventsSlider1;
-    juce::Slider rotationSlider1;
-    juce::Slider velocitySlider1;
-    unique_ptr<SliderAttachment> stepsSliderAttachment1;
-    unique_ptr<SliderAttachment> eventsSliderAttachment1;
-    unique_ptr<SliderAttachment> rotationSliderAttachment1;
-    unique_ptr<SliderAttachment> velocitySliderAttachment1;
+    map<int, juce::ComboBox*> noteNumberComboBoxes;
+    map<int, juce::ComboBox*> stepDurationComboBoxes;
 
-    juce::ComboBox noteNumberComboBox1;
-    juce::ComboBox noteDurationComboBox1;
-    juce::ComboBox stepDurationComboBox1;
-
-    /////////////////////////////////////////////////////////////////////
-    // seq3
-    juce::Slider stepsSlider2;
-    juce::Slider eventsSlider2;
-    juce::Slider rotationSlider2;
-    juce::Slider velocitySlider2;
-    unique_ptr<SliderAttachment> stepsSliderAttachment2;
-    unique_ptr<SliderAttachment> eventsSliderAttachment2;
-    unique_ptr<SliderAttachment> rotationSliderAttachment2;
-    unique_ptr<SliderAttachment> velocitySliderAttachment2;
-
-    juce::ComboBox noteNumberComboBox2;
-    juce::ComboBox noteDurationComboBox2;
-    juce::ComboBox stepDurationComboBox2;
-
-
+   
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessorEditor)
 };

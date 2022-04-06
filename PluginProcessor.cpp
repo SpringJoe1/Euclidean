@@ -194,6 +194,10 @@ void EucSeq_MultiStageAudioProcessor::prepareToPlay(double sampleRate, int sampl
     // Seq 3
     euclideanRhythms.insert({ 2, new EuclideanRhythmComponent(8, 4, rate, bpm) });
 
+    //==============================================================================
+    // Seq 4
+    euclideanRhythms.insert({ 3, new EuclideanRhythmComponent(8, 4, rate, bpm) });
+
 
     DBG("FIN DEL PREPARE TO PLAY ");
 
@@ -290,21 +294,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout EucSeq_MultiStageAudioProces
     vector<unique_ptr<juce::RangedAudioParameter>> paramsVector;
 
     // We add elements to the vector
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS0", "Steps", 0, 16, 8));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS0", "Events", 0, 16, 4));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION0", "Rotation", 0, 16, 0));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY0", "Velocity", 0, 127, 127));
-
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS1", "Steps", 0, 16, 8));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS1", "Events", 0, 16, 4));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION1", "Rotation", 0, 16, 0));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY1", "Velocity", 0, 127, 127));
-
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS2", "Steps", 0, 16, 8));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS2", "Events", 0, 16, 4));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION2", "Rotation", 0, 16, 0));
-    paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY2", "Velocity", 0, 127, 127));
-
+    for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS" + to_string(i), "Steps " + to_string(i), 0, 16, 8));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS" + to_string(i), "Events " + to_string(i), 0, 16, 4));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION" + to_string(i), "Rotation " + to_string(i), 0, 16, 0));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY" + to_string(i), "Velocity " + to_string(i), 0, 127, 127));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("GATE" + to_string(i), "Gate " + to_string(i), 0, 400, 100));
+    }
+    
     // Return the vector
     return { paramsVector.begin(), paramsVector.end() };
 
@@ -319,14 +316,8 @@ void EucSeq_MultiStageAudioProcessor::setNewNoteNumber(int value, int seqID) {
 
 }
 
-void EucSeq_MultiStageAudioProcessor::setNewNoteDuration(float duration, int seqID) {
-    if (seqID >= 0 && seqID < NUM_TOTAL_ETAPAS) {
-        if (euclideanRhythms.count(seqID))
-            euclideanRhythms.at(seqID)->setFigureNote(duration);
-    }
-}
 
-void EucSeq_MultiStageAudioProcessor::setNewStepDuration(float duration, int seqID) {
+void EucSeq_MultiStageAudioProcessor::setNewStepFigure(float duration, int seqID) {
     if (seqID >= 0 && seqID < NUM_TOTAL_ETAPAS) {
         if (euclideanRhythms.count(seqID))
             euclideanRhythms.at(seqID)->setFigureStep(duration);
@@ -349,7 +340,7 @@ int EucSeq_MultiStageAudioProcessor::getBPM() {
     //bpm_aux = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    bpm_aux = 50;
+    bpm_aux = 120;
 
     return bpm_aux;
 }
@@ -380,7 +371,12 @@ int EucSeq_MultiStageAudioProcessor::getIndexFromCurrentSample(EuclideanRhythmCo
 
 void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythmComponent* euclideanRhythm, int ID) {
 
+    int gate = *apvts.getRawParameterValue("GATE" + to_string(ID));
+    euclideanRhythm->set_gate(gate);
+
     euclideanRhythm->convertBPMToTime();
+
+    //DBG(" stepDuration " << euclideanRhythm->getStepDuration() << " noteDuration " << euclideanRhythm->getNoteDuration());
 
     // actualizamos todo el rato el n�mero de samples totales del comp�s 
     // para tener la aguja actualizada
@@ -470,7 +466,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
 
             auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
             
-            DBG(" seqID: " << ID <<
+            DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << note <<
                 " index " << euclideanRhythm->getIndex() <<
                 " on (" << steps << "," << events << ") " <<
@@ -485,13 +481,11 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
         }
     }
 
-
     // actualizamos el numero de sample que acabamos de procesar
     euclideanRhythm->setCurrentSampleInBar((euclideanRhythm->getCurrentSampleInBar() + numSamples) %
         (euclideanRhythm->get_steps() * euclideanRhythm->getStepDuration()));//((int)steps->load()*stepDuration);
 
     //TODO cerrar notas en funcino de noteDuration
-    
     euclideanRhythm->setTimeStep((euclideanRhythm->getTimeStep() + numSamples) %
         euclideanRhythm->getStepDuration());
 

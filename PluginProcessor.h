@@ -72,8 +72,7 @@ public:
     //==============================================================================
 
     void setNewNoteNumber(int note, int seqID);
-    void setNewNoteDuration(float duration, int seqID);
-    void setNewStepDuration(float duration, int seqID);
+    void setNewStepFigure(float duration, int seqID);
 
     //==============================================================================
 
