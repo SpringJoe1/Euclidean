@@ -26,7 +26,25 @@ EuclideanRhythmComponent::EuclideanRhythmComponent()
     _euclideanRhythm[0] = 0;
 }
 
-EuclideanRhythmComponent::EuclideanRhythmComponent(int steps, int events) {
+EuclideanRhythmComponent::EuclideanRhythmComponent(int steps, int events, float rate, int bpmParam,
+    int rotationParam, int velocityParam, int figureStepParam, int figureNoteParam,
+    int noteNumberParam) {
+
+    this->sampleRate = rate;
+    this->bpm = bpmParam;
+
+    this->set_rotation(rotationParam);
+    this->set_velocity(velocityParam);
+    this->setFigureStep(figureStepParam);
+    this->setFigureNote(figureNoteParam);
+    convertBPMToTime();
+    this->setTimeStep(this->getStepDuration());
+    this->setTimeNote(0);
+    this->setIndex(0);
+    this->setNoteNumber(noteNumberParam);   // C4
+    this->setNumSamplesPerBar(0);
+    this->setCurrentSampleInBar(0);
+    
     set_euclideanRhythm(steps, events);
 }
 
@@ -73,6 +91,10 @@ vector<int> EuclideanRhythmComponent::get_euclideanRhythm() {
 
 int EuclideanRhythmComponent::get_rotation() {
     return this->_rotation;
+}
+
+int EuclideanRhythmComponent::get_velocity() {
+    return this->_velocity;
 }
 
 juce::String EuclideanRhythmComponent::getList() {
@@ -127,6 +149,10 @@ void EuclideanRhythmComponent::set_steps(int newSteps) {
 
 void EuclideanRhythmComponent::set_rotation(int value) {
     this->_rotation = value;
+}
+
+void EuclideanRhythmComponent::set_velocity(int value) {
+    this->_velocity = value;
 }
 
 // Atributos auxiliares para realizar el processBlock() 
@@ -246,5 +272,13 @@ void EuclideanRhythmComponent::showList() {
     for (it = this->_euclideanRhythm.begin(); it != this->_euclideanRhythm.end(); ++it)
         cout << *it << " ";
     cout << endl << endl;
+}
+
+// esta funcion saca el tiempo de nota y de step (en samples) en funcion de los bpms
+void EuclideanRhythmComponent::convertBPMToTime() {
+
+    this->setNoteDuration(round((((float)(60000 * this->sampleRate * this->getFigureNote()) / this->bpm) / 1000) * 100) / 100);
+    this->setStepDuration(round((((float)(60000 * this->sampleRate * this->getFigureStep()) / this->bpm) / 1000) * 100) / 100);
+
 }
 

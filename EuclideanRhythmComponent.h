@@ -30,7 +30,8 @@ public:
     //==============================================================================
 
     EuclideanRhythmComponent();
-    EuclideanRhythmComponent(int steps, int events);
+    EuclideanRhythmComponent(int steps, int events, float rate, int bpmParam, int rotationParam = 0,
+        int velocityParam = 127, int figureStepParam = 1, int figureNoteParam = 1, int noteNumberParam = 72);
     ~EuclideanRhythmComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -44,6 +45,7 @@ public:
     int get_steps();
     int get_events();
     int get_rotation();
+    int get_velocity();
     vector<int> get_euclideanRhythm();
     juce::String getList();
 
@@ -52,6 +54,7 @@ public:
     void set_events(int newEvents);
     void set_steps(int newSteps);
     void set_rotation(int rotation);
+    void set_velocity(int value);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
@@ -87,11 +90,15 @@ public:
     void rotateRight(int times);
     void rotateLeft(int times);
     void showList();
+    // esta funcion saca el tiempo de nota y de step (en samples) en funcion de los bpms
+    void convertBPMToTime();
 
     //==============================================================================
     // TODO -- Atributos publicos (cambiar a private)
     //==============================================================================
 
+    int bpm;
+    float sampleRate;
 
     // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
     map<int, int> notesDurationMap;
@@ -107,6 +114,7 @@ private:
     int _steps;
     int _events;
     int _rotation;
+    int _velocity;
 
     //==============================================================================
     // Atributos auxiliares para realizar el processBlock() 

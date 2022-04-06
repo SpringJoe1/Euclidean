@@ -57,9 +57,11 @@ private:
     juce::Slider stepsSlider;
     juce::Slider eventsSlider;
     juce::Slider rotationSlider;
+    juce::Slider velocitySlider;
     unique_ptr<SliderAttachment> stepsSliderAttachment;
     unique_ptr<SliderAttachment> eventsSliderAttachment;
     unique_ptr<SliderAttachment> rotationSliderAttachment;
+    unique_ptr<SliderAttachment> velocitySliderAttachment;
 
     juce::ComboBox noteNumberComboBox;
     juce::ComboBox noteDurationComboBox;
@@ -70,9 +72,11 @@ private:
     juce::Slider stepsSlider1;
     juce::Slider eventsSlider1;
     juce::Slider rotationSlider1;
+    juce::Slider velocitySlider1;
     unique_ptr<SliderAttachment> stepsSliderAttachment1;
     unique_ptr<SliderAttachment> eventsSliderAttachment1;
     unique_ptr<SliderAttachment> rotationSliderAttachment1;
+    unique_ptr<SliderAttachment> velocitySliderAttachment1;
 
     juce::ComboBox noteNumberComboBox1;
     juce::ComboBox noteDurationComboBox1;
@@ -83,9 +87,11 @@ private:
     juce::Slider stepsSlider2;
     juce::Slider eventsSlider2;
     juce::Slider rotationSlider2;
+    juce::Slider velocitySlider2;
     unique_ptr<SliderAttachment> stepsSliderAttachment2;
     unique_ptr<SliderAttachment> eventsSliderAttachment2;
     unique_ptr<SliderAttachment> rotationSliderAttachment2;
+    unique_ptr<SliderAttachment> velocitySliderAttachment2;
 
     juce::ComboBox noteNumberComboBox2;
     juce::ComboBox noteDurationComboBox2;

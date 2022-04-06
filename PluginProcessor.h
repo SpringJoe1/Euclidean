@@ -75,18 +75,14 @@ public:
     void setNewNoteDuration(float duration, int seqID);
     void setNewStepDuration(float duration, int seqID);
 
-
     //==============================================================================
-
-    //guarradas
-    bool guarrada1;
 
 private:
 
     //==============================================================================
 
     void initNotesOnMap();
-    void convertBPMToTime(EuclideanRhythmComponent* e);
+    //void convertBPMToTime(EuclideanRhythmComponent* e);
     int getBPM();
     int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSamplesInBar);
     int getIndexFromCurrentSample(EuclideanRhythmComponent* e);
@@ -98,44 +94,21 @@ private:
 
     //==============================================================================
     
-    // notas - numero de noteOns
-    map<int, int> notesOn;
-
-    int numTotalSequencers;
+    // mapa de <ID, puntero a EuclideanRhythmComponent> donde estarán los 4 
     map<int, EuclideanRhythmComponent*> euclideanRhythms;
+    
+    // mapa de <notas - numero de noteOns> global
+    map<int, int> notesOn;
     
     int numSamples;
     int bpm;
     float rate;
     int midiChannel = 10;
-    int velocity;
 
+
+    // to get information from the application 
     juce::AudioPlayHead* playHead;
     juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
-
-    // rhythm1
-    //EuclideanRhythmComponent* euclideanRhythmComponent;
-    //int index;
-    //int rotationValue;
-    //int noteNumber;
-    //// map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
-    //map<int, int> notesDurationMap;
-    //vector<int> notesToDeleteFromMap;
-
-
-    //// sample rate
-
-
-    //// duracion de las notas (blanca, corchea, etc)
-    //float figureStep, figureNote;
-    //// duraci�n de las notas en n�mero de samples
-    //int stepDuration, noteDuration;
-    //// contadores para llevar cuanto lleva sonando el step y la nota actual (en n�mero de samples)
-    //int timeStep, timeNote;
-    //// total de samples de un comp�s para calcular por donde va la aguja
-    //int numSamplesPerBar;
-    //// n�mero del sample que acabamos de procesar en el compas
-    //// int currentSampleInBar;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessor)
