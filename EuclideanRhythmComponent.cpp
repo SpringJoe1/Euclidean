@@ -20,29 +20,31 @@ EuclideanRhythmComponent::EuclideanRhythmComponent()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     this->_euclideanRhythm = { NULL };
-    this->_steps = 0;
+    this->_steps = 1;
     this->_events = 0;
     this->_rotation = 0;
     _euclideanRhythm[0] = 0;
 }
 
-EuclideanRhythmComponent::EuclideanRhythmComponent(int steps, int events, float rate, int bpmParam,
-    int rotationParam, int velocityParam, int gateParam, int figureStepParam, int noteNumberParam) {
+EuclideanRhythmComponent::EuclideanRhythmComponent(float rate, int bpmParam, int steps, int events,
+    int rotationParam, int velocityParam, int gateParam, int noteNumberParam, int figureStepParam, 
+    bool reverseParam) {
 
     this->sampleRate = rate;
     this->bpm = bpmParam;
 
-    this->set_rotation(rotationParam);
-    this->set_velocity(velocityParam);
-    this->setFigureStep(figureStepParam);
-    this->set_gate(gateParam);
+    this->_rotation = rotationParam;
+    this->_velocity = velocityParam;
+    this->_figureStep = figureStepParam;
+    this->_gate = gateParam;
+    this->_reverse = reverseParam;
     convertBPMToTime();
-    this->setTimeStep(this->getStepDuration());
-    this->setTimeNote(0);
-    this->setIndex(0);
-    this->setNoteNumber(noteNumberParam);   // C4
-    this->setNumSamplesPerBar(0);
-    this->setCurrentSampleInBar(0);
+    this->timeStep = stepDuration;
+    this->timeNote = 0;
+    this->index = 0;
+    this->_noteNumber = noteNumberParam;   // C4
+    this->numSamplesPerBar = 0;
+    this->currentSampleInBar = 0;
     
     set_euclideanRhythm(steps, events);
 }
@@ -98,6 +100,10 @@ int EuclideanRhythmComponent::get_velocity() {
 
 int EuclideanRhythmComponent::get_gate() {
     return this->_gate;
+}
+
+bool EuclideanRhythmComponent::get_reverse() {
+    return this->_reverse;
 }
 
 juce::String EuclideanRhythmComponent::getList() {
@@ -162,26 +168,22 @@ void EuclideanRhythmComponent::set_gate(int value) {
     this->_gate = value;
 }
 
+void EuclideanRhythmComponent::set_reverse(bool value) {
+    this->_reverse = value;
+}
+
 // Atributos auxiliares para realizar el processBlock() 
 
 int EuclideanRhythmComponent::getIndex() {
     return this->index;
 }
 
-int EuclideanRhythmComponent::getNoteNumber() {
-    return this->noteNumber;
+int EuclideanRhythmComponent::get_noteNumber() {
+    return this->_noteNumber;
 }
 
-map<int, int> EuclideanRhythmComponent::getNotesDurationMap() {
-    return this->notesDurationMap;
-}
-
-vector<int> EuclideanRhythmComponent::getNotesToDeleteFromMap() {
-    return this->notesToDeleteFromMap;
-}
-
-float EuclideanRhythmComponent::getFigureStep() {
-    return this->figureStep;
+float EuclideanRhythmComponent::get_figureStep() {
+    return this->_figureStep;
 }
 
 int EuclideanRhythmComponent::getStepDuration() {
@@ -208,19 +210,27 @@ int EuclideanRhythmComponent::getCurrentSampleInBar() {
     return this->currentSampleInBar;
 }
 
+int EuclideanRhythmComponent::getBpm() {
+    return this->bpm;
+}
+
+float EuclideanRhythmComponent::getRate() {
+    return this->sampleRate;
+}
+
 void EuclideanRhythmComponent::setIndex(int value) {
     this->index = value;
 }
 
-void EuclideanRhythmComponent::setNoteNumber(int value) {
-    this->noteNumber = value;
+void EuclideanRhythmComponent::set_noteNumber(int value) {
+    this->_noteNumber = value;
 }
 
 //void setNotesDurationMap();
 //void setNotesToDeleteFromMap();
 
-void EuclideanRhythmComponent::setFigureStep(float value) {
-    this->figureStep = value;
+void EuclideanRhythmComponent::set_figureStep(float value) {
+    this->_figureStep = value;
 }
 
 
@@ -245,6 +255,14 @@ void EuclideanRhythmComponent::setNumSamplesPerBar(int samples) {
 
 void EuclideanRhythmComponent::setCurrentSampleInBar(int value) {
     this->currentSampleInBar = value;
+}
+
+void EuclideanRhythmComponent::setBpm(int value) {
+    this->bpm = value;
+}
+
+void EuclideanRhythmComponent::setRate(float value) {
+    this->sampleRate = value;
 }
 
 //==============================================================================
@@ -278,8 +296,8 @@ void EuclideanRhythmComponent::showList() {
 // esta funcion saca el tiempo de nota y de step (en samples) en funcion de los bpms
 void EuclideanRhythmComponent::convertBPMToTime() {
 
-    this->setNoteDuration(round((((float)(60000 * this->sampleRate * (this->getFigureStep()* ((float)this->get_gate()/100.0f))) / this->bpm) / 1000) * 100) / 100);
-    this->setStepDuration(round((((float)(60000 * this->sampleRate * this->getFigureStep()) / this->bpm) / 1000) * 100) / 100);
+    this->setNoteDuration(round((((float)(60000 * this->sampleRate * (this->get_figureStep()* ((float)this->get_gate()/100.0f))) / this->bpm) / 1000) * 100) / 100);
+    this->setStepDuration(round((((float)(60000 * this->sampleRate * this->get_figureStep()) / this->bpm) / 1000) * 100) / 100);
 
 }
 

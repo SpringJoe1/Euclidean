@@ -71,8 +71,12 @@ public:
 
     //==============================================================================
 
-    void setNewNoteNumber(int note, int seqID);
+    void setNewNoteNumber(int value, int seqID);
     void setNewStepFigure(float duration, int seqID);
+    void createRythm(int id, int steps, int events, int rotation, int velocity, int gate,
+        int noteNumber, float figureStep, bool reverse);
+    void deleteRythm(int id);
+    void setNewDirection(int id, bool reverse);
 
     //==============================================================================
 

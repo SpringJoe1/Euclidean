@@ -19,7 +19,8 @@ using namespace std;
 /**
 */
 class EucSeq_MultiStageAudioProcessorEditor : public juce::AudioProcessorEditor,
-    public juce::ComboBox::Listener
+    public juce::ComboBox::Listener,
+    public juce::Button::Listener
 {
 public:
     EucSeq_MultiStageAudioProcessorEditor(EucSeq_MultiStageAudioProcessor&);
@@ -36,14 +37,20 @@ private:
     //void paintRhythm(juce::Graphics& g);
 
     //==============================================================================
-
+    
+    void setTextButtonParams(juce::TextButton& textButton, string id);
     void setSliderParams(juce::Slider& slider);
     void setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id);
     void setDurationComboBoxParams(juce::ComboBox& comboBox, string id);
+
+    void disableComponents(int id);
+    void enableComponents(int id);
+
     //==============================================================================
 
-    // Listener del comboBox 
+    // Listeners 
     void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+    void buttonClicked(juce::Button* button) override;
 
     //==============================================================================
 
@@ -53,6 +60,9 @@ private:
 
     // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+
+    map<int, juce::TextButton*> onOffButtons;
+    map<int, juce::TextButton*> reverseButtons;
 
     map<int, juce::Slider*> stepsSliders;
     map<int, juce::Slider*> eventsSliders;

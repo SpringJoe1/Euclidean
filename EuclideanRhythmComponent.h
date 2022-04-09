@@ -30,8 +30,9 @@ public:
     //==============================================================================
 
     EuclideanRhythmComponent();
-    EuclideanRhythmComponent(int steps, int events, float rate, int bpmParam, int rotationParam = 0,
-        int velocityParam = 127, int gateParam = 100, int figureStepParam = 1, int noteNumberParam = 72);
+    EuclideanRhythmComponent(float rate, int bpmParam, int steps, int events, int rotationParam = 0,
+        int velocityParam = 127, int gateParam = 100, int noteNumberParam = 72,
+        int figureStepParam = 1, bool reverse = false);
     ~EuclideanRhythmComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -47,6 +48,9 @@ public:
     int get_rotation();
     int get_velocity();
     int get_gate();
+    int get_noteNumber();
+    float get_figureStep();
+    bool get_reverse();
     vector<int> get_euclideanRhythm();
     juce::String getList();
 
@@ -57,13 +61,12 @@ public:
     void set_rotation(int rotation);
     void set_velocity(int value);
     void set_gate(int value);
+    void set_noteNumber(int value);
+    void set_figureStep(float value);
+    void set_reverse(bool value);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
-    int getNoteNumber();
-    map<int, int> getNotesDurationMap();
-    vector<int> getNotesToDeleteFromMap();
-    float getFigureStep();
     int getStepDuration();
     int getNoteDuration();
     int getTimeStep();
@@ -71,17 +74,19 @@ public:
     int getNumSamplesPerBar();
     int getCurrentSampleInBar();
 
+    int getBpm();
+    float getRate();
+
     void setIndex(int value);
-    void setNoteNumber(int value);
-    //void setNotesDurationMap();
-    //void setNotesToDeleteFromMap();
-    void setFigureStep(float value);
     void setStepDuration(int value);
     void setNoteDuration(int value);
     void setTimeStep(int value);
     void setTimeNote(int value);
     void setNumSamplesPerBar(int samples);
     void setCurrentSampleInBar(int value);
+
+    void setBpm(int value);
+    void setRate(float rate);
 
     //==============================================================================
     // other aux functions
@@ -96,10 +101,6 @@ public:
     //==============================================================================
     // TODO -- Atributos publicos (cambiar a private)
     //==============================================================================
-
-    int bpm;
-    float sampleRate;
-
     // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
     map<int, int> notesDurationMap;
     vector<int> notesToDeleteFromMap;
@@ -116,20 +117,27 @@ private:
     int _rotation;
     int _velocity;
     int _gate;
+    // valor de la nota midi (entre C0 y B6 que son la 24 y 106)
+    int _noteNumber;
+    // duracion de los steps (blanca, corchea, etc)
+    float _figureStep;
+
+    // TODO -- cambiar _reverse y anadir el atributo direction que tambien
+    // sea modificable x random o pingpong o algo asi
+    
+    // reverse = false if the direction goes to the right.
+    bool _reverse;
 
     //==============================================================================
     // Atributos auxiliares para realizar el processBlock() 
     //==============================================================================
 
+    int bpm;
+    float sampleRate;
+    
     // indice de la nota que va a ser procesada
     int index;
-    // valor de la nota midi (entre C0 y B6 que son la 24 y 106)
-    int noteNumber;
-    
 
-
-    // duracion de los steps (blanca, corchea, etc)
-    float figureStep;
     // duracion de las notas en numero de samples
     int stepDuration, noteDuration;
     // contadores para llevar cuanto lleva sonando el step y la nota actual (en numero de samples)
