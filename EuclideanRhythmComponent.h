@@ -32,7 +32,7 @@ public:
     EuclideanRhythmComponent();
     EuclideanRhythmComponent(float rate, int bpmParam, int steps, int events, int rotationParam = 0,
         int velocityParam = 127, int gateParam = 100, int noteNumberParam = 72,
-        int figureStepParam = 1, bool reverse = false);
+        int figureStepParam = 1, bool direction = true, bool reverse = false, bool pingPong = false);
     ~EuclideanRhythmComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -50,7 +50,9 @@ public:
     int get_gate();
     int get_noteNumber();
     float get_figureStep();
+    bool get_direction();
     bool get_reverse();
+    bool get_pingPong();
     vector<int> get_euclideanRhythm();
     juce::String getList();
 
@@ -63,7 +65,9 @@ public:
     void set_gate(int value);
     void set_noteNumber(int value);
     void set_figureStep(float value);
+    void set_direction(bool value);
     void set_reverse(bool value);
+    void set_pingPong(bool value);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
@@ -97,6 +101,7 @@ public:
     void showList();
     // esta funcion saca el tiempo de nota y de step (en samples) en funcion de los bpms
     void convertBPMToTime();
+    void switchDirection();
 
     //==============================================================================
     // TODO -- Atributos publicos (cambiar a private)
@@ -121,12 +126,12 @@ private:
     int _noteNumber;
     // duracion de los steps (blanca, corchea, etc)
     float _figureStep;
-
-    // TODO -- cambiar _reverse y anadir el atributo direction que tambien
-    // sea modificable x random o pingpong o algo asi
-    
-    // reverse = false if the direction goes to the right.
+    // _direction = true if the direction goes to the right.
+    bool _direction;
+    // _reverse = true to reverse the direction.
     bool _reverse;
+    // _pingPong = true => pingPong mode On
+    bool _pingPong;
 
     //==============================================================================
     // Atributos auxiliares para realizar el processBlock() 
@@ -146,7 +151,6 @@ private:
     int numSamplesPerBar;
     // numero del sample que acabamos de procesar en el compas
     int currentSampleInBar;
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EuclideanRhythmComponent)
 };

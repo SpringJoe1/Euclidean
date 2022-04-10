@@ -54,11 +54,17 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 		stepDurationComboBoxes.insert({ i, new juce::ComboBox() });
 		setDurationComboBoxParams(*stepDurationComboBoxes.at(i), "STEP_DURATION_COMBOBOX" + to_string(i));
 
-		// direction button
+		// reverse direction button
 		reverseButtons.insert({ i, new juce::TextButton{"reverseButton"} });
 		reverseButtons.at(i)->setButtonText("Reverse\nOff");
 		reverseButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*reverseButtons.at(i), "REVERSE_BUTTON" + to_string(i));
+
+		// random direction button
+		pingPongButtons.insert({ i, new juce::TextButton{"pingPongButton"} });
+		pingPongButtons.at(i)->setButtonText("Ping Pong\nOff");
+		pingPongButtons.at(i)->setEnabled(false);
+		setTextButtonParams(*pingPongButtons.at(i), "PING_PONG_BUTTON" + to_string(i));
 	}
 	
 	setSize(800, 500);
@@ -107,7 +113,8 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 		(*gateSliders.at(i)).setBounds((*velocitySliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
 		(*noteNumberComboBoxes.at(i)).setBounds((*gateSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
 		(*stepDurationComboBoxes.at(i)).setBounds((*noteNumberComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*reverseButtons.at(i)).setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		(*reverseButtons.at(i)).setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
+		(*pingPongButtons.at(i)).setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
 
 		componentStartY += componentHeight + padding;
 	}
@@ -270,6 +277,7 @@ void EucSeq_MultiStageAudioProcessorEditor::disableComponents(int id) {
 	noteNumberComboBoxes.at(id)->setEnabled(false);
 	stepDurationComboBoxes.at(id)->setEnabled(false);
 	reverseButtons.at(id)->setEnabled(false);
+	pingPongButtons.at(id)->setEnabled(false);
 }
 
 void EucSeq_MultiStageAudioProcessorEditor::enableComponents(int id) {
@@ -282,6 +290,7 @@ void EucSeq_MultiStageAudioProcessorEditor::enableComponents(int id) {
 	noteNumberComboBoxes.at(id)->setEnabled(true);
 	stepDurationComboBoxes.at(id)->setEnabled(true);
 	reverseButtons.at(id)->setEnabled(true);
+	pingPongButtons.at(id)->setEnabled(true);
 }
 
 
@@ -359,10 +368,13 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 			int gate = gateSliders.at(seqID)->getValue();
 			int noteNumber = noteNumberComboBoxes.at(seqID)->getSelectedId();
 			float figureStep = stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV;
+			bool direction = true;
 			bool reverse = reverseButtons.at(seqID)->getToggleState();
+			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
+
 
 			audioProcessor.createRythm(seqID, steps, events, rotation, velocity, gate, noteNumber,
-				figureStep, reverse);
+				figureStep, direction, reverse, pingPong);
 
 			// disable those components
 			enableComponents(seqID);
@@ -370,14 +382,34 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 	}
 	else if (componentIDWithoutID == "REVERSE_BUTTON") {
 		if (button->getToggleState() == true) {
+			
+			// deseleccionamos el pingPongButton
+			pingPongButtons.at(seqID)->setToggleState(false, true);
+			
 			// reverse the direction of the rythm
 			button->setButtonText("Reverse\nOn");
-			audioProcessor.setNewDirection(seqID, true);
+			audioProcessor.setReverseDirection(seqID, true);
 		}
 		else {
 			// set the right direction
 			button->setButtonText("Reverse\nOff");
-			audioProcessor.setNewDirection(seqID, false);
+			audioProcessor.setReverseDirection(seqID, false);
+		}
+	}
+	else if (componentIDWithoutID == "PING_PONG_BUTTON") {
+		if (button->getToggleState() == true) {
+			
+			// deseleccionamos el reverseButton
+			reverseButtons.at(seqID)->setToggleState(false, true);
+			
+			button->setButtonText("Ping Pong\nOn");
+			audioProcessor.setNewPingPong(seqID, true);
+		}
+		else {
+			// set the right direction
+			button->setButtonText("Ping Pong\nOff");
+			audioProcessor.setNewPingPong(seqID, false);
+
 		}
 	}
 }

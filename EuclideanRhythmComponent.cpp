@@ -28,7 +28,7 @@ EuclideanRhythmComponent::EuclideanRhythmComponent()
 
 EuclideanRhythmComponent::EuclideanRhythmComponent(float rate, int bpmParam, int steps, int events,
     int rotationParam, int velocityParam, int gateParam, int noteNumberParam, int figureStepParam, 
-    bool reverseParam) {
+    bool directionParam, bool reverseParam, bool pingPongParam) {
 
     this->sampleRate = rate;
     this->bpm = bpmParam;
@@ -37,7 +37,9 @@ EuclideanRhythmComponent::EuclideanRhythmComponent(float rate, int bpmParam, int
     this->_velocity = velocityParam;
     this->_figureStep = figureStepParam;
     this->_gate = gateParam;
+    this->_direction = directionParam;
     this->_reverse = reverseParam;
+    this->_pingPong = pingPongParam;
     convertBPMToTime();
     this->timeStep = stepDuration;
     this->timeNote = 0;
@@ -102,8 +104,16 @@ int EuclideanRhythmComponent::get_gate() {
     return this->_gate;
 }
 
+bool EuclideanRhythmComponent::get_direction() {
+    return this->_direction;
+}
+
 bool EuclideanRhythmComponent::get_reverse() {
     return this->_reverse;
+}
+
+bool EuclideanRhythmComponent::get_pingPong() {
+    return this->_pingPong;
 }
 
 juce::String EuclideanRhythmComponent::getList() {
@@ -168,8 +178,16 @@ void EuclideanRhythmComponent::set_gate(int value) {
     this->_gate = value;
 }
 
+void EuclideanRhythmComponent::set_direction(bool value) {
+    this->_direction = value;
+}
+
 void EuclideanRhythmComponent::set_reverse(bool value) {
     this->_reverse = value;
+}
+
+void EuclideanRhythmComponent::set_pingPong(bool value) {
+    this->_pingPong = value;
 }
 
 // Atributos auxiliares para realizar el processBlock() 
@@ -257,6 +275,7 @@ void EuclideanRhythmComponent::setCurrentSampleInBar(int value) {
     this->currentSampleInBar = value;
 }
 
+
 void EuclideanRhythmComponent::setBpm(int value) {
     this->bpm = value;
 }
@@ -292,6 +311,14 @@ void EuclideanRhythmComponent::showList() {
         cout << *it << " ";
     cout << endl << endl;
 }
+
+void EuclideanRhythmComponent::switchDirection() {
+    if (this->_direction)
+        this->_direction = false;
+    else
+        this->_direction = true;
+}
+
 
 // esta funcion saca el tiempo de nota y de step (en samples) en funcion de los bpms
 void EuclideanRhythmComponent::convertBPMToTime() {

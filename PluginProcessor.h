@@ -74,9 +74,10 @@ public:
     void setNewNoteNumber(int value, int seqID);
     void setNewStepFigure(float duration, int seqID);
     void createRythm(int id, int steps, int events, int rotation, int velocity, int gate,
-        int noteNumber, float figureStep, bool reverse);
+        int noteNumber, float figureStep, bool direction, bool reverse, bool pingPong);
     void deleteRythm(int id);
-    void setNewDirection(int id, bool reverse);
+    void setReverseDirection(int id, bool reverse);
+    void setNewPingPong(int id, bool random);
 
     //==============================================================================
 

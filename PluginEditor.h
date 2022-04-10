@@ -63,6 +63,7 @@ private:
 
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
+    map<int, juce::TextButton*> pingPongButtons;
 
     map<int, juce::Slider*> stepsSliders;
     map<int, juce::Slider*> eventsSliders;

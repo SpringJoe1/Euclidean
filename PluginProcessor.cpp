@@ -182,13 +182,6 @@ void EucSeq_MultiStageAudioProcessor::prepareToPlay(double sampleRate, int sampl
     bpm = getBPM();
     initNotesOnMap();
 
-    //euclideanRhythms.insert({ 0, new EuclideanRhythmComponent(8, 4, rate, bpm) });
-    //euclideanRhythms.insert({ 1, new EuclideanRhythmComponent(8, 4, rate, bpm) });
-    //euclideanRhythms.insert({ 2, new EuclideanRhythmComponent(8, 4, rate, bpm) });
-    //euclideanRhythms.insert({ 3, new EuclideanRhythmComponent(8, 4, rate, bpm) });
-
-    DBG((-150) % 47900);
-
     DBG("FIN DEL PREPARE TO PLAY ");
 
 }
@@ -308,12 +301,13 @@ void EucSeq_MultiStageAudioProcessor::setNewStepFigure(float duration, int seqID
 }
 
 void EucSeq_MultiStageAudioProcessor::createRythm(int id, int steps, int events, int rotation,
-    int velocity, int gate, int noteNumber, float figureStep, bool reverseParam) {
+    int velocity, int gate, int noteNumber, float figureStep, bool directionParam, bool reverseParam,
+    bool pingPongParam) {
 
     euclideanRhythms.insert({
         id,
-        new EuclideanRhythmComponent(rate, bpm, steps, events, rotation, velocity, gate, noteNumber, 
-        figureStep, reverseParam)
+        new EuclideanRhythmComponent(rate, bpm, steps, events, rotation, velocity, gate, noteNumber,
+        figureStep, directionParam, reverseParam, pingPongParam)
         });
 }
 
@@ -321,10 +315,26 @@ void EucSeq_MultiStageAudioProcessor::deleteRythm(int id) {
     euclideanRhythms.erase(id);
 }
 
-void EucSeq_MultiStageAudioProcessor::setNewDirection(int seqID, bool reverse) {
-    if (euclideanRhythms.count(seqID))
+void EucSeq_MultiStageAudioProcessor::setReverseDirection(int seqID, bool reverse) {
+    if (euclideanRhythms.count(seqID)) {
         euclideanRhythms.at(seqID)->set_reverse(reverse);
+        // si reverse = false => direccion es false ( hacia la izq <- )
+        if (reverse)
+            euclideanRhythms.at(seqID)->set_direction(false);
+        else
+            euclideanRhythms.at(seqID)->set_direction(true);
+    }
 }
+
+void EucSeq_MultiStageAudioProcessor::setNewPingPong(int id, bool value) {
+    if (euclideanRhythms.count(id)) {
+        euclideanRhythms.at(id)->set_pingPong(value);
+        // si pingPong = false => devolvemos la direccion a true ( hacia la derecha -> )
+        if(value = false)
+            euclideanRhythms.at(id)->set_direction(true);
+    }
+}
+
 
 //==============================================================================
 
@@ -358,13 +368,12 @@ int EucSeq_MultiStageAudioProcessor::getIndexFromCurrentSample(EuclideanRhythmCo
     if (e->get_steps() == 0)
         return 0;
     int aux;
-    if (e->get_reverse() == false)
+    if (e->get_direction() == false)
         aux = ceil((float)e->getCurrentSampleInBar() / (float)e->getStepDuration());
     else
         aux = floor((float)e->getCurrentSampleInBar() / (float)e->getStepDuration());
     return aux % e->get_steps();
 }
-
 
 //==============================================================================
 
@@ -377,8 +386,6 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
     euclideanRhythm->setRate(rate);
     euclideanRhythm->convertBPMToTime();
 
-    //DBG(" stepDuration " << euclideanRhythm->getStepDuration() << " noteDuration " << euclideanRhythm->getNoteDuration());
-
     // actualizamos todo el rato el n�mero de samples totales del comp�s 
     // para tener la aguja actualizada
     euclideanRhythm->setNumSamplesPerBar(euclideanRhythm->get_steps() * euclideanRhythm->getStepDuration());
@@ -387,24 +394,17 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
     int events = *apvts.getRawParameterValue("EVENTS" + to_string(ID));
     int newRotation = *apvts.getRawParameterValue("ROTATION" + to_string(ID));
 
-    //DBG("antes de crear ritmo " << newRotation << " current rotation " << euclideanRhythm->get_rotation() << " " << euclideanRhythm->getList());
     euclideanRhythm->set_euclideanRhythm(steps, events);
-    //DBG("despues crear ritmo " << newRotation << " current rotation " << euclideanRhythm->get_rotation() << " " << euclideanRhythm->getList());
 
     // check if it has to rotate, and if it has to do it to the right or to the left
     if (newRotation > euclideanRhythm->get_rotation()) {
-        //DBG("RIGHT 1 newRotation " << newRotation << " current rotation " << euclideanRhythm->get_rotation());
         euclideanRhythm->rotateRight(newRotation - euclideanRhythm->get_rotation());
         euclideanRhythm->set_rotation(newRotation);
-        //DBG("RIGHT 2 newRotation " << newRotation << " current rotation " << euclideanRhythm->get_rotation());
     }
     else if (newRotation < euclideanRhythm->get_rotation()) {
-        //DBG("LEFT 1 newRotation " << newRotation << " current rotation " << euclideanRhythm->get_rotation());
         euclideanRhythm->rotateLeft(euclideanRhythm->get_rotation() - newRotation);
         euclideanRhythm->set_rotation(newRotation);
-        //DBG("LEFT 2 newRotation " << newRotation << " current rotation " << euclideanRhythm->get_rotation());
     }
-    //DBG("FUERA ELSE IF " << newRotation << " current rotation " << euclideanRhythm->get_rotation() << " " << euclideanRhythm->getList());
 
 
     // cs1/ts1 = cs2/ts2 donde cs1 y ts1 son el current y el total samples antes de cambiar los steps y
@@ -416,9 +416,6 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
 
     // a partir del current sample que estamos procesando, sacamos el index del ritmo
     euclideanRhythm->setIndex(getIndexFromCurrentSample(euclideanRhythm));
-
-    // TODO -- revisar ESTO DEBO HACERLO ?
-    //midiMessages.clear();
 
     // comprobamos el tiempo que lleva durando cada nota
     // si ha excedido >= noteDuration se manda un noteOff de esa nota
@@ -433,7 +430,8 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
                 " index " << euclideanRhythm->getIndex() <<
                 " on (" << steps << "," << events << ") " <<
                 " rotation " << euclideanRhythm->get_rotation() <<
-                " on " << euclideanRhythm->getList());
+                " on " << euclideanRhythm->getList() <<
+                " direction " << (int)euclideanRhythm->get_direction());
 
             // mapa de notas global
             notesOn[itr->first]--;
@@ -474,7 +472,8 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
                 " on (" << steps << "," << events << ") " <<
                 " rotation " << euclideanRhythm->get_rotation() <<
                 " velocity " << velocity <<
-                " on " << euclideanRhythm->getList());
+                " on " << euclideanRhythm->getList() <<
+                " direction " << (int)euclideanRhythm->get_direction());
 
             midiMessages.addEvent(message, offset);
 
@@ -483,21 +482,41 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
         }
     }
 
-    //DBG("antes 2 " << euclideanRhythm->getCurrentSampleInBar());
+    // comprobamos el sentido en el que estamos procesando
+    if(!euclideanRhythm->get_reverse() && !euclideanRhythm->get_pingPong())
+        euclideanRhythm->set_direction(true);
+    
     // actualizamos el numero de sample que acabamos de procesar dependiendo del sentido
-    if (euclideanRhythm->get_reverse() == false) {
-        euclideanRhythm->setCurrentSampleInBar((euclideanRhythm->getCurrentSampleInBar() + numSamples) %
-            (euclideanRhythm->get_steps() * euclideanRhythm->getStepDuration()));
+    int newCurrentSampleInBar;
+    // direccion horaria
+    if (euclideanRhythm->get_direction()) {
+        newCurrentSampleInBar = (euclideanRhythm->getCurrentSampleInBar() + numSamples) %
+            (euclideanRhythm->getStepDuration() * euclideanRhythm->get_steps());
+        // ping-pong mode on
+        if (euclideanRhythm->get_pingPong()) {
+            if (euclideanRhythm->getCurrentSampleInBar() + numSamples >= euclideanRhythm->getNumSamplesPerBar()) {
+                newCurrentSampleInBar = euclideanRhythm->getNumSamplesPerBar();
+                euclideanRhythm->switchDirection();
+            }
+        }
     }
+    // direccion anti horaria
     else {
         if (euclideanRhythm->getCurrentSampleInBar() - numSamples >= 0)
-            euclideanRhythm->setCurrentSampleInBar(euclideanRhythm->getCurrentSampleInBar() - numSamples);
+            newCurrentSampleInBar = euclideanRhythm->getCurrentSampleInBar() - numSamples;
         else
-            euclideanRhythm->setCurrentSampleInBar(euclideanRhythm->getNumSamplesPerBar() -
+            newCurrentSampleInBar = (euclideanRhythm->getNumSamplesPerBar() -
                 (numSamples - euclideanRhythm->getCurrentSampleInBar()));
-
+        // ping-pong mode on
+        if (euclideanRhythm->get_pingPong()) {
+            if (euclideanRhythm->getCurrentSampleInBar() - numSamples <= 0) {
+                newCurrentSampleInBar = 0;
+                euclideanRhythm->switchDirection();
+            }
+        }
     }
-    //DBG("despues 2 " << euclideanRhythm->getCurrentSampleInBar());
+    euclideanRhythm->setCurrentSampleInBar(newCurrentSampleInBar);
+    //DBG("despues " << euclideanRhythm->getCurrentSampleInBar());
 
 
     // actualizamos el tiempo que lleva sonando la nota
