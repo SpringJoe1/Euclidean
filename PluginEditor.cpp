@@ -67,7 +67,12 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 		setTextButtonParams(*pingPongButtons.at(i), "PING_PONG_BUTTON" + to_string(i));
 	}
 	
-	setSize(800, 500);
+	// Re-Sync button
+	syncButton = new juce::TextButton{ "syncButton" };
+	syncButton->setButtonText("Re-Sync");
+	setTextButtonParams(*syncButton, "SYNC_BUTTON4");
+	
+	setSize(800, 600);
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
 
@@ -95,36 +100,45 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 	// distance between components
 	const auto padding = 10;
 	// ancho del slider
-	const auto componentWidth = bounds.getWidth() / numOfComponents - padding;
+	const auto componentWidth = (bounds.getWidth()) / numOfComponents - padding;
 	// alto del slider
-	const auto componentHeight = bounds.getHeight() / NUM_TOTAL_ETAPAS - 2*padding;
+	const auto componentHeight = (bounds.getHeight() - 100) / NUM_TOTAL_ETAPAS - 2*padding;
 	// donde empieza el primer componente eje X
 	auto componentStartX = 0;
 	// donde empieza el primer componente eje Y
 	auto componentStartY = 0;
 
+	//DBG("componentWidth " << componentWidth <<
+	//	" componentHeight " << componentHeight);
+
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 		
-		(*onOffButtons.at(i)).setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
-		(*stepsSliders.at(i)).setBounds((*onOffButtons.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*eventsSliders.at(i)).setBounds((*stepsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*rotationSliders.at(i)).setBounds((*eventsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*velocitySliders.at(i)).setBounds((*rotationSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*gateSliders.at(i)).setBounds((*velocitySliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*noteNumberComboBoxes.at(i)).setBounds((*gateSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*stepDurationComboBoxes.at(i)).setBounds((*noteNumberComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		(*reverseButtons.at(i)).setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
-		(*pingPongButtons.at(i)).setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
+		onOffButtons.at(i)->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
+		stepsSliders.at(i)->setBounds((*onOffButtons.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		eventsSliders.at(i)->setBounds((*stepsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		rotationSliders.at(i)->setBounds((*eventsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		velocitySliders.at(i)->setBounds((*rotationSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		gateSliders.at(i)->setBounds((*velocitySliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		noteNumberComboBoxes.at(i)->setBounds((*gateSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		stepDurationComboBoxes.at(i)->setBounds((*noteNumberComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
+		reverseButtons.at(i)->setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
+		pingPongButtons.at(i)->setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
 
 		componentStartY += componentHeight + padding;
 	}
+
+	syncButton->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
+
 
 }
 
 //==============================================================================
 void EucSeq_MultiStageAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
 	
-	textButton.setClickingTogglesState(true);
+	if(id != "SYNC_BUTTON4")
+		// en la UI el button se quedará pulsado
+		textButton.setClickingTogglesState(true);
+
 	textButton.setComponentID(id);
 	addAndMakeVisible(textButton);
 	textButton.addListener(this);
@@ -411,6 +425,9 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 			audioProcessor.setNewPingPong(seqID, false);
 
 		}
+	}
+	else if (componentIDWithoutID == "SYNC_BUTTON") {
+		audioProcessor.synchronizeAll();
 	}
 }
 

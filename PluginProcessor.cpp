@@ -335,6 +335,16 @@ void EucSeq_MultiStageAudioProcessor::setNewPingPong(int id, bool value) {
     }
 }
 
+void EucSeq_MultiStageAudioProcessor::synchronizeAll() {
+    for (auto itr = euclideanRhythms.begin(); itr != euclideanRhythms.end(); itr++) {
+        itr->second->convertBPMToTime();
+        itr->second->setTimeStep(0);
+        itr->second->setTimeNote(0);
+        itr->second->setIndex(0);
+        itr->second->setNumSamplesPerBar(0);
+        itr->second->setCurrentSampleInBar(0);
+    }
+}
 
 //==============================================================================
 
@@ -425,13 +435,16 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
             auto offset = juce::jmax(0, juce::jmin((int)(euclideanRhythm->getNoteDuration() - itr->second), numSamples - 1));
             auto message = juce::MidiMessage::noteOff(midiChannel, itr->first);
 
+
             DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << itr->first <<
                 " index " << euclideanRhythm->getIndex() <<
                 " on (" << steps << "," << events << ") " <<
                 " rotation " << euclideanRhythm->get_rotation() <<
                 " on " << euclideanRhythm->getList() <<
-                " direction " << (int)euclideanRhythm->get_direction());
+                " direction " << (int)euclideanRhythm->get_direction() <<
+                "currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
+                " of " << euclideanRhythm->getNumSamplesPerBar());
 
             // mapa de notas global
             notesOn[itr->first]--;
@@ -452,7 +465,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
     }
     euclideanRhythm->notesToDeleteFromMap.clear();
 
-    // If de si debe empezar una step o no 
+    // If de si debe empezar un step o no 
     if ((euclideanRhythm->getTimeStep() + numSamples) >= euclideanRhythm->getStepDuration()) {
 
         auto offset = juce::jmax(0, juce::jmin((int)(euclideanRhythm->getStepDuration() - euclideanRhythm->getTimeStep()), numSamples - 1));
@@ -465,7 +478,6 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
             euclideanRhythm->set_velocity(velocity);
 
             auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
-
             DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << note <<
                 " index " << euclideanRhythm->getIndex() <<
@@ -473,7 +485,9 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
                 " rotation " << euclideanRhythm->get_rotation() <<
                 " velocity " << velocity <<
                 " on " << euclideanRhythm->getList() <<
-                " direction " << (int)euclideanRhythm->get_direction());
+                " direction " << (int)euclideanRhythm->get_direction() <<
+                "currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
+                " of " << euclideanRhythm->getNumSamplesPerBar());
 
             midiMessages.addEvent(message, offset);
 
@@ -516,8 +530,6 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
         }
     }
     euclideanRhythm->setCurrentSampleInBar(newCurrentSampleInBar);
-    //DBG("despues " << euclideanRhythm->getCurrentSampleInBar());
-
 
     // actualizamos el tiempo que lleva sonando la nota
     euclideanRhythm->setTimeStep((euclideanRhythm->getTimeStep() + numSamples) %

@@ -65,6 +65,8 @@ private:
     map<int, juce::TextButton*> reverseButtons;
     map<int, juce::TextButton*> pingPongButtons;
 
+    juce::TextButton* syncButton;
+
     map<int, juce::Slider*> stepsSliders;
     map<int, juce::Slider*> eventsSliders;
     map<int, juce::Slider*> rotationSliders;
@@ -80,7 +82,6 @@ private:
     map<int, juce::ComboBox*> noteNumberComboBoxes;
     map<int, juce::ComboBox*> stepDurationComboBoxes;
 
-   
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessorEditor)
 };

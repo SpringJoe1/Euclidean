@@ -41,7 +41,7 @@ EuclideanRhythmComponent::EuclideanRhythmComponent(float rate, int bpmParam, int
     this->_reverse = reverseParam;
     this->_pingPong = pingPongParam;
     convertBPMToTime();
-    this->timeStep = stepDuration;
+    this->timeStep = 0;
     this->timeNote = 0;
     this->index = 0;
     this->_noteNumber = noteNumberParam;   // C4
@@ -63,7 +63,7 @@ void EuclideanRhythmComponent::paint (juce::Graphics& g)
        You should replace everything in this method with your own
        drawing code..
     */
-
+    g.fillAll(juce::Colours::pink);
 }
 
 void EuclideanRhythmComponent::resized()

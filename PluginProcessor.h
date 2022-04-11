@@ -78,6 +78,7 @@ public:
     void deleteRythm(int id);
     void setReverseDirection(int id, bool reverse);
     void setNewPingPong(int id, bool random);
+    void synchronizeAll();
 
     //==============================================================================
 
