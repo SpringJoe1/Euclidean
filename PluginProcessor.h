@@ -79,6 +79,7 @@ public:
     void setReverseDirection(int id, bool reverse);
     void setNewPingPong(int id, bool random);
     void synchronizeAll();
+    map<int, EuclideanRhythmComponent*> getEuclideanRhythms();
 
     //==============================================================================
 

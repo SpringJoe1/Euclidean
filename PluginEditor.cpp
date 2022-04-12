@@ -72,7 +72,7 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 	syncButton->setButtonText("Re-Sync");
 	setTextButtonParams(*syncButton, "SYNC_BUTTON4");
 	
-	setSize(800, 600);
+	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
 
@@ -87,12 +87,17 @@ EucSeq_MultiStageAudioProcessorEditor::~EucSeq_MultiStageAudioProcessorEditor()
 void EucSeq_MultiStageAudioProcessorEditor::paint(juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
+	g.resetToDefaultState();
 	g.fillAll(juce::Colours::black);
-	//paintRhythm(g);
+
+	for(int i = 0; i < NUM_TOTAL_ETAPAS; i++)
+		paintRhythm(g,i);
+	repaint();
 }
 
 void EucSeq_MultiStageAudioProcessorEditor::resized()
 {
+
 	int numOfComponents = 9;
 
 	// bounds of the whole pluggin
@@ -100,11 +105,11 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 	// distance between components
 	const auto padding = 10;
 	// ancho del slider
-	const auto componentWidth = (bounds.getWidth()) / numOfComponents - padding;
+	const auto componentWidth = (bounds.getWidth() - 400) / numOfComponents - padding;
 	// alto del slider
-	const auto componentHeight = (bounds.getHeight() - 100) / NUM_TOTAL_ETAPAS - 2*padding;
+	const auto componentHeight = bounds.getHeight() / (NUM_TOTAL_ETAPAS+1) - 2*padding;
 	// donde empieza el primer componente eje X
-	auto componentStartX = 0;
+	auto componentStartX = 400;
 	// donde empieza el primer componente eje Y
 	auto componentStartY = 0;
 
@@ -114,15 +119,15 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 		
 		onOffButtons.at(i)->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
-		stepsSliders.at(i)->setBounds((*onOffButtons.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		eventsSliders.at(i)->setBounds((*stepsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		rotationSliders.at(i)->setBounds((*eventsSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		velocitySliders.at(i)->setBounds((*rotationSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		gateSliders.at(i)->setBounds((*velocitySliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		noteNumberComboBoxes.at(i)->setBounds((*gateSliders.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		stepDurationComboBoxes.at(i)->setBounds((*noteNumberComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, componentHeight);
-		reverseButtons.at(i)->setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
-		pingPongButtons.at(i)->setBounds((*stepDurationComboBoxes.at(i)).getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
+		stepsSliders.at(i)->setBounds(onOffButtons.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		eventsSliders.at(i)->setBounds(stepsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		rotationSliders.at(i)->setBounds(eventsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		velocitySliders.at(i)->setBounds(rotationSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		gateSliders.at(i)->setBounds(velocitySliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		noteNumberComboBoxes.at(i)->setBounds(gateSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		stepDurationComboBoxes.at(i)->setBounds(noteNumberComboBoxes.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		reverseButtons.at(i)->setBounds(stepDurationComboBoxes.at(i)->getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
+		pingPongButtons.at(i)->setBounds(stepDurationComboBoxes.at(i)->getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
 
 		componentStartY += componentHeight + padding;
 	}
@@ -433,35 +438,57 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 
 //==============================================================================
 
-//void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g) {
-//
-//	// l�mites del plugin
-//	const auto bounds = getLocalBounds().reduced(10);
-//
-//	// alto de los segmentos
-//	const auto alturaSegmentos = 15;
-//
-//	// coordenadas (X,Y) donde empezar a pintar 
-//	const auto startY = bounds.getBottom() - 5 - alturaSegmentos;
-//	const auto startX = 5;
-//
-//	// numero de segmentos del ritmo
-//	const auto numSeg = audioProcessor.getEuclideanRhythm().getSteps();
-//	// anchura de cada segmento
-//	const auto anchoSegmento = (bounds.getWidth() - 10) / numSeg;
-//
-//	DBG("numSeg " << numSeg);
-//
-//	for (int i = 0; i < numSeg; i++) {
-//		if (audioProcessor.guarrada1) {
-//			audioProcessor.guarrada1 = false;
-//			g.setColour(juce::Colours::purple);
-//			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
-//		}
-//		else {
-//			audioProcessor.guarrada1 = true;
-//			g.setColour(juce::Colours::rebeccapurple);
-//			g.fillRect(startX + (anchoSegmento * i), startY, anchoSegmento, alturaSegmentos);
-//		}
-//	}
-//}
+void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int id) {
+
+	if (!audioProcessor.getEuclideanRhythms().count(id))
+		return;
+	
+	int numOfComponents = 9;
+
+	// bounds of the whole pluggin
+	const auto bounds = getLocalBounds();
+	// distance between components
+	const auto padding = 10;
+	// ancho del comp
+	const auto componentWidth = 400 / numOfComponents - padding;
+	// alto del slider
+	const auto componentHeight = (bounds.getHeight()) / (NUM_TOTAL_ETAPAS+1) - 2 * padding;
+	// donde empieza el primer componente eje X
+	auto componentStartX = 0;
+	// donde empieza el primer componente eje Y
+	auto componentStartY = 0;
+
+	// numero de segmentos del ritmo
+	const auto numseg = audioProcessor.getEuclideanRhythms().at(id)->get_steps();
+	// anchura y altura de cada segmento
+	int anchosegmento = (400 - componentWidth - (2*padding)) / numseg;
+	int altosegmento = componentHeight;
+	// donde empieza el primer segmento
+	int startY = (componentHeight + padding)*id;
+	int startX = 0;
+
+	vector<int> list = audioProcessor.getEuclideanRhythms().at(id)->get_euclideanRhythm();
+	// EuclideanRhythmComponent e = (*(audioProcessor.getEuclideanRhythms().at(id));
+
+	int i = 0;
+	for (auto itr = list.begin(); itr != list.end(); itr++) {
+
+		if ((*itr) == 1)
+			g.setColour(juce::Colours::green);
+		else
+			g.setColour(juce::Colours::red);
+
+		if(audioProcessor.getEuclideanRhythms().at(id)->getIndex() == i)
+			g.setColour(juce::Colours::white);
+		
+		g.fillRect(startX + anchosegmento * i,
+			startY,
+			anchosegmento,
+			altosegmento);
+		
+		//startY = altosegmento + padding;
+		i++;
+	}
+
+	//repaint();
+}

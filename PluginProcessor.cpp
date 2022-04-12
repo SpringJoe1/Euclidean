@@ -346,6 +346,11 @@ void EucSeq_MultiStageAudioProcessor::synchronizeAll() {
     }
 }
 
+map<int, EuclideanRhythmComponent*> EucSeq_MultiStageAudioProcessor::getEuclideanRhythms() {
+    return euclideanRhythms;
+}
+
+
 //==============================================================================
 
 void EucSeq_MultiStageAudioProcessor::initNotesOnMap() {
@@ -443,7 +448,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
                 " rotation " << euclideanRhythm->get_rotation() <<
                 " on " << euclideanRhythm->getList() <<
                 " direction " << (int)euclideanRhythm->get_direction() <<
-                "currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
+                " currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
                 " of " << euclideanRhythm->getNumSamplesPerBar());
 
             // mapa de notas global
@@ -486,7 +491,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
                 " velocity " << velocity <<
                 " on " << euclideanRhythm->getList() <<
                 " direction " << (int)euclideanRhythm->get_direction() <<
-                "currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
+                " currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
                 " of " << euclideanRhythm->getNumSamplesPerBar());
 
             midiMessages.addEvent(message, offset);
