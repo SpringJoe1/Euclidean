@@ -20,7 +20,8 @@ using namespace std;
 */
 class EucSeq_MultiStageAudioProcessorEditor : public juce::AudioProcessorEditor,
     public juce::ComboBox::Listener,
-    public juce::Button::Listener
+    public juce::Button::Listener,
+    public juce::Timer
 {
 public:
     EucSeq_MultiStageAudioProcessorEditor(EucSeq_MultiStageAudioProcessor&);
@@ -29,12 +30,13 @@ public:
     //==============================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
 
     //==============================================================================
 
-    void paintRhythm(juce::Graphics& g, int seqID);
+    void paintRhythm(juce::Graphics& g,int seqID);
 
     //==============================================================================
     

@@ -14,6 +14,8 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
+	// 60 Hz
+	Timer::startTimer(60.0f);
 
 	// alias para que sea m�s legible
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -81,18 +83,39 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 
 EucSeq_MultiStageAudioProcessorEditor::~EucSeq_MultiStageAudioProcessorEditor()
 {
+	stopTimer();
 }
 
 //==============================================================================
+
+void EucSeq_MultiStageAudioProcessorEditor::timerCallback() {
+	repaint();
+}
+
+//==============================================================================
+
 void EucSeq_MultiStageAudioProcessorEditor::paint(juce::Graphics& g)
-{
+{	
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.resetToDefaultState();
 	g.fillAll(juce::Colours::black);
 
-	for(int i = 0; i < NUM_TOTAL_ETAPAS; i++)
-		paintRhythm(g,i);
-	repaint();
+	for(int seqID = 0; seqID < NUM_TOTAL_ETAPAS; seqID++)
+		paintRhythm(g, seqID);
+
+	//juce::Path line;
+
+	//g.setColour(juce::Colours::green);
+	///*line.addPieSegment(0, 0, 100, 100, 2.0f, 4.0f, 0.5f);
+	//g.setColour(juce::Colours::red);*/
+	//g.fillPath(line);
+
+	
+
+
+	//for(int i = 0; i < NUM_TOTAL_ETAPAS; i++)
+	//	paintRhythm(g,i);
+	//repaint();
 }
 
 void EucSeq_MultiStageAudioProcessorEditor::resized()
@@ -438,57 +461,91 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 
 //==============================================================================
 
-void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int id) {
+//void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int id) {
+//
+//	if (!audioProcessor.getEuclideanRhythms().count(id))
+//		return;
+//	
+//	int numOfComponents = 9;
+//
+//	// bounds of the whole pluggin
+//	const auto bounds = getLocalBounds();
+//	// distance between components
+//	const auto padding = 10;
+//	// ancho del comp
+//	const auto componentWidth = 400 / numOfComponents - padding;
+//	// alto del slider
+//	const auto componentHeight = (bounds.getHeight()) / (NUM_TOTAL_ETAPAS+1) - 2 * padding;
+//	// donde empieza el primer componente eje X
+//	auto componentStartX = 0;
+//	// donde empieza el primer componente eje Y
+//	auto componentStartY = 0;
+//
+//	// numero de segmentos del ritmo
+//	const auto numseg = audioProcessor.getEuclideanRhythms().at(id)->get_steps();
+//	// anchura y altura de cada segmento
+//	int anchosegmento = (400 - componentWidth - (2*padding)) / numseg;
+//	int altosegmento = componentHeight;
+//	// donde empieza el primer segmento
+//	int startY = (componentHeight + padding)*id;
+//	int startX = 0;
+//
+//	vector<int> list = audioProcessor.getEuclideanRhythms().at(id)->get_euclideanRhythm();
+//	// EuclideanRhythmComponent e = (*(audioProcessor.getEuclideanRhythms().at(id));
+//
+//	int i = 0;
+//	for (auto itr = list.begin(); itr != list.end(); itr++) {
+//
+//		if ((*itr) == 1)
+//			g.setColour(juce::Colours::green);
+//		else
+//			g.setColour(juce::Colours::red);
+//
+//		if(audioProcessor.getEuclideanRhythms().at(id)->getIndex() == i)
+//			g.setColour(juce::Colours::white);
+//		
+//		g.fillRect(startX + anchosegmento * i,
+//			startY,
+//			anchosegmento,
+//			altosegmento);
+//		
+//		//startY = altosegmento + padding;
+//		i++;
+//	}
+//
+//}
 
-	if (!audioProcessor.getEuclideanRhythms().count(id))
+void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID) {
+
+	if (!audioProcessor.getEuclideanRhythms().count(seqID))
 		return;
-	
-	int numOfComponents = 9;
 
-	// bounds of the whole pluggin
-	const auto bounds = getLocalBounds();
-	// distance between components
-	const auto padding = 10;
-	// ancho del comp
-	const auto componentWidth = 400 / numOfComponents - padding;
-	// alto del slider
-	const auto componentHeight = (bounds.getHeight()) / (NUM_TOTAL_ETAPAS+1) - 2 * padding;
-	// donde empieza el primer componente eje X
-	auto componentStartX = 0;
-	// donde empieza el primer componente eje Y
-	auto componentStartY = 0;
+	float startX = 50 * seqID;
+	float startY = 50 * seqID;
+	float width = 100 * (NUM_TOTAL_ETAPAS - seqID);
+	float height = 100 * (NUM_TOTAL_ETAPAS - seqID);
 
-	// numero de segmentos del ritmo
-	const auto numseg = audioProcessor.getEuclideanRhythms().at(id)->get_steps();
-	// anchura y altura de cada segmento
-	int anchosegmento = (400 - componentWidth - (2*padding)) / numseg;
-	int altosegmento = componentHeight;
-	// donde empieza el primer segmento
-	int startY = (componentHeight + padding)*id;
-	int startX = 0;
-
-	vector<int> list = audioProcessor.getEuclideanRhythms().at(id)->get_euclideanRhythm();
-	// EuclideanRhythmComponent e = (*(audioProcessor.getEuclideanRhythms().at(id));
-
-	int i = 0;
-	for (auto itr = list.begin(); itr != list.end(); itr++) {
-
-		if ((*itr) == 1)
+	vector<int> v = audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm();
+	int numSteps = v.size();
+	float stepSize = 2 * juce::MathConstants<float>::pi / numSteps;
+	for (int i = 0; i < numSteps; i++) {
+		juce::Path pieSegments;
+		float startRadians = stepSize * i;
+		float endRadians = startRadians + stepSize;
+		pieSegments.addPieSegment(startX, startY,
+			width, height, startRadians, endRadians, 0.85f);
+		
+		if (v[i]) 
 			g.setColour(juce::Colours::green);
 		else
 			g.setColour(juce::Colours::red);
-
-		if(audioProcessor.getEuclideanRhythms().at(id)->getIndex() == i)
+		
+		if(audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
 			g.setColour(juce::Colours::white);
 		
-		g.fillRect(startX + anchosegmento * i,
-			startY,
-			anchosegmento,
-			altosegmento);
-		
-		//startY = altosegmento + padding;
-		i++;
-	}
+		g.fillPath(pieSegments);
+		pieSegments.clear();
 
-	//repaint();
+	}
+	
 }
