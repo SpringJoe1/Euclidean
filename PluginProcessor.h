@@ -9,12 +9,14 @@
 #pragma once
 
 #define NUM_TOTAL_ETAPAS 4
+#define CONST_DURATION_TIME_CONV 1000
+
 
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath> 
 #include <string>
-#include "EuclideanRhythmComponent.h"
+#include "EuclideanRhythm.h"
 #include <map>
 
 using namespace std;
@@ -23,12 +25,12 @@ using namespace std;
 //==============================================================================
 /**
 */
-class EucSeq_MultiStageAudioProcessor : public juce::AudioProcessor
+class EuclideanSequencerAudioProcessor : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    EucSeq_MultiStageAudioProcessor();
-    ~EucSeq_MultiStageAudioProcessor() override;
+    EuclideanSequencerAudioProcessor();
+    ~EuclideanSequencerAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -74,12 +76,15 @@ public:
     void setNewNoteNumber(int value, int seqID);
     void setNewStepFigure(float duration, int seqID);
     void createRythm(int id, int steps, int events, int rotation, int velocity, int gate,
-        int noteNumber, float figureStep, bool direction, bool reverse, bool pingPong);
+        int noteNumber, float figureStep, bool direction, bool reverse, bool pingPong,
+        bool dottedNotesParam, bool tripletsParam);
     void deleteRythm(int id);
     void setReverseDirection(int id, bool reverse);
     void setNewPingPong(int id, bool random);
     void synchronizeAll();
-    map<int, EuclideanRhythmComponent*> getEuclideanRhythms();
+    void setDottedNotes(int seqID, bool value, float newDuration);
+    void setTriplets(int seqID, bool value, float newDuration);
+    map<int, EuclideanRhythm*> getEuclideanRhythms();
 
     //==============================================================================
 
@@ -91,9 +96,9 @@ private:
     //void convertBPMToTime(EuclideanRhythmComponent* e);
     int getBPM();
     int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSamplesInBar);
-    int getIndexFromCurrentSample(EuclideanRhythmComponent* e);
+    int getIndexFromCurrentSample(EuclideanRhythm* e);
 
-    void processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythmComponent* euclideanRhythm, int sequencerID);
+    void processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythm* euclideanRhythm, int sequencerID);
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
 
@@ -101,7 +106,7 @@ private:
     //==============================================================================
     
     // mapa de <ID, puntero a EuclideanRhythmComponent> donde estarán los 4 
-    map<int, EuclideanRhythmComponent*> euclideanRhythms;
+    map<int, EuclideanRhythm*> euclideanRhythms;
     
     // mapa de <notas - numero de noteOns> global
     map<int, int> notesOn;
@@ -117,5 +122,5 @@ private:
     juce::AudioPlayHead::CurrentPositionInfo currentPositionInfo;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EuclideanSequencerAudioProcessor)
 };

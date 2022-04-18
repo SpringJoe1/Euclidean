@@ -8,7 +8,6 @@
 
 #pragma once
 
-#define CONST_DURATION_TIME_CONV 1000
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
@@ -18,14 +17,14 @@ using namespace std;
 //==============================================================================
 /**
 */
-class EucSeq_MultiStageAudioProcessorEditor : public juce::AudioProcessorEditor,
+class EuclideanSequencerAudioProcessorEditor : public juce::AudioProcessorEditor,
     public juce::ComboBox::Listener,
     public juce::Button::Listener,
     public juce::Timer
 {
 public:
-    EucSeq_MultiStageAudioProcessorEditor(EucSeq_MultiStageAudioProcessor&);
-    ~EucSeq_MultiStageAudioProcessorEditor() override;
+   EuclideanSequencerAudioProcessorEditor(EuclideanSequencerAudioProcessor&);
+    ~EuclideanSequencerAudioProcessorEditor() override;
 
     //==============================================================================
     void paint(juce::Graphics&) override;
@@ -58,7 +57,7 @@ private:
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    EucSeq_MultiStageAudioProcessor& audioProcessor;
+    EuclideanSequencerAudioProcessor& audioProcessor;
 
     // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -66,6 +65,8 @@ private:
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
     map<int, juce::TextButton*> pingPongButtons;
+    map<int, juce::TextButton*> tripletsButtons;
+    map<int, juce::TextButton*> dottedButtons;
 
     juce::TextButton* syncButton;
 
@@ -85,5 +86,5 @@ private:
     map<int, juce::ComboBox*> stepDurationComboBoxes;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EucSeq_MultiStageAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EuclideanSequencerAudioProcessorEditor)
 };

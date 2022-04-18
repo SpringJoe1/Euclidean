@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(EucSeq_MultiStageAudioProcessor& p)
+EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(EuclideanSequencerAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
@@ -62,11 +62,23 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 		reverseButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*reverseButtons.at(i), "REVERSE_BUTTON" + to_string(i));
 
-		// random direction button
+		// ping-pong direction button
 		pingPongButtons.insert({ i, new juce::TextButton{"pingPongButton"} });
 		pingPongButtons.at(i)->setButtonText("Ping Pong\nOff");
 		pingPongButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*pingPongButtons.at(i), "PING_PONG_BUTTON" + to_string(i));
+
+		// triplets button
+		tripletsButtons.insert({ i, new juce::TextButton{"tripletsButton"} });
+		tripletsButtons.at(i)->setButtonText("Triplets\nOff");
+		tripletsButtons.at(i)->setEnabled(false);
+		setTextButtonParams(*tripletsButtons.at(i), "TRIPLETS_BUTTON" + to_string(i));
+
+		// dotted button
+		dottedButtons.insert({ i, new juce::TextButton{"dottedButton"} });
+		dottedButtons.at(i)->setButtonText("Dotted\nOff");
+		dottedButtons.at(i)->setEnabled(false);
+		setTextButtonParams(*dottedButtons.at(i), "DOTTED_BUTTON" + to_string(i));
 	}
 	
 	// Re-Sync button
@@ -81,47 +93,39 @@ EucSeq_MultiStageAudioProcessorEditor::EucSeq_MultiStageAudioProcessorEditor(Euc
 
 }
 
-EucSeq_MultiStageAudioProcessorEditor::~EucSeq_MultiStageAudioProcessorEditor()
+EuclideanSequencerAudioProcessorEditor::~EuclideanSequencerAudioProcessorEditor()
 {
 	stopTimer();
 }
 
 //==============================================================================
 
-void EucSeq_MultiStageAudioProcessorEditor::timerCallback() {
+void EuclideanSequencerAudioProcessorEditor::timerCallback() {
 	repaint();
 }
 
 //==============================================================================
 
-void EucSeq_MultiStageAudioProcessorEditor::paint(juce::Graphics& g)
+void EuclideanSequencerAudioProcessorEditor::paint(juce::Graphics& g)
 {	
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.resetToDefaultState();
 	g.fillAll(juce::Colours::black);
 
+
+	// TODO
+	/// fixear el pintado
 	for(int seqID = 0; seqID < NUM_TOTAL_ETAPAS; seqID++)
 		paintRhythm(g, seqID);
 
-	//juce::Path line;
 
-	//g.setColour(juce::Colours::green);
-	///*line.addPieSegment(0, 0, 100, 100, 2.0f, 4.0f, 0.5f);
-	//g.setColour(juce::Colours::red);*/
-	//g.fillPath(line);
-
-	
-
-
-	//for(int i = 0; i < NUM_TOTAL_ETAPAS; i++)
-	//	paintRhythm(g,i);
 	//repaint();
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::resized()
+void EuclideanSequencerAudioProcessorEditor::resized()
 {
 
-	int numOfComponents = 9;
+	int numOfComponents = 10;
 
 	// bounds of the whole pluggin
 	const auto bounds = getLocalBounds();
@@ -149,8 +153,12 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 		gateSliders.at(i)->setBounds(velocitySliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		noteNumberComboBoxes.at(i)->setBounds(gateSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		stepDurationComboBoxes.at(i)->setBounds(noteNumberComboBoxes.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		
 		reverseButtons.at(i)->setBounds(stepDurationComboBoxes.at(i)->getRight() + padding, componentStartY, componentWidth, (componentHeight/2));
 		pingPongButtons.at(i)->setBounds(stepDurationComboBoxes.at(i)->getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
+
+		dottedButtons.at(i)->setBounds(reverseButtons.at(i)->getRight() + padding, componentStartY, componentWidth, (componentHeight / 2));
+		tripletsButtons.at(i)->setBounds(reverseButtons.at(i)->getRight() + padding, (componentStartY + (componentHeight / 2)), componentWidth, (componentHeight / 2));
 
 		componentStartY += componentHeight + padding;
 	}
@@ -161,7 +169,7 @@ void EucSeq_MultiStageAudioProcessorEditor::resized()
 }
 
 //==============================================================================
-void EucSeq_MultiStageAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
+void EuclideanSequencerAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
 	
 	if(id != "SYNC_BUTTON4")
 		// en la UI el button se quedará pulsado
@@ -172,7 +180,7 @@ void EucSeq_MultiStageAudioProcessorEditor::setTextButtonParams(juce::TextButton
 	textButton.addListener(this);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::setSliderParams(juce::Slider& slider) {
+void EuclideanSequencerAudioProcessorEditor::setSliderParams(juce::Slider& slider) {
 	//slider.setDoubleClickReturnValue
 	//slider.setNumDecimalPlacesToDisplay
 	slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -181,7 +189,7 @@ void EucSeq_MultiStageAudioProcessorEditor::setSliderParams(juce::Slider& slider
 	slider.setEnabled(false);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id) {
+void EuclideanSequencerAudioProcessorEditor::setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id) {
 
 	comboBox.setComponentID(id);
 	
@@ -283,7 +291,7 @@ void EucSeq_MultiStageAudioProcessorEditor::setNoteNumberComboBoxParams(juce::Co
 	comboBox.addListener(this);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::setDurationComboBoxParams(juce::ComboBox& comboBox, string id) {
+void EuclideanSequencerAudioProcessorEditor::setDurationComboBoxParams(juce::ComboBox& comboBox, string id) {
 
 	comboBox.setComponentID(id);
 
@@ -309,7 +317,7 @@ void EucSeq_MultiStageAudioProcessorEditor::setDurationComboBoxParams(juce::Comb
 	comboBox.addListener(this);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::disableComponents(int id) {
+void EuclideanSequencerAudioProcessorEditor::disableComponents(int id) {
 	
 	stepsSliders.at(id)->setEnabled(false);
 	eventsSliders.at(id)->setEnabled(false);
@@ -320,9 +328,11 @@ void EucSeq_MultiStageAudioProcessorEditor::disableComponents(int id) {
 	stepDurationComboBoxes.at(id)->setEnabled(false);
 	reverseButtons.at(id)->setEnabled(false);
 	pingPongButtons.at(id)->setEnabled(false);
+	dottedButtons.at(id)->setEnabled(false);
+	tripletsButtons.at(id)->setEnabled(false);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::enableComponents(int id) {
+void EuclideanSequencerAudioProcessorEditor::enableComponents(int id) {
 
 	stepsSliders.at(id)->setEnabled(true);
 	eventsSliders.at(id)->setEnabled(true);
@@ -333,6 +343,8 @@ void EucSeq_MultiStageAudioProcessorEditor::enableComponents(int id) {
 	stepDurationComboBoxes.at(id)->setEnabled(true);
 	reverseButtons.at(id)->setEnabled(true);
 	pingPongButtons.at(id)->setEnabled(true);
+	dottedButtons.at(id)->setEnabled(true);
+	tripletsButtons.at(id)->setEnabled(true);
 }
 
 
@@ -340,7 +352,7 @@ void EucSeq_MultiStageAudioProcessorEditor::enableComponents(int id) {
 
 // LISTENERS
 
-void EucSeq_MultiStageAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
+void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
 
 	DBG("!!!! COMBO BOX !!!");
 	// string que almacena el ID del combobox + seqID
@@ -371,7 +383,7 @@ void EucSeq_MultiStageAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comb
 		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 }
 
-void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) {
+void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button) {
 	
 	DBG("!!!! BUTTON !!!");
 	// string que almacena el ID del combobox + seqID
@@ -413,10 +425,12 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 			bool direction = true;
 			bool reverse = reverseButtons.at(seqID)->getToggleState();
 			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
+			bool dottedNotes = dottedButtons.at(seqID)->getToggleState(); 
+			bool triplets = tripletsButtons.at(seqID)->getToggleState();
 
 
 			audioProcessor.createRythm(seqID, steps, events, rotation, velocity, gate, noteNumber,
-				figureStep, direction, reverse, pingPong);
+				figureStep, direction, reverse, pingPong, dottedNotes, triplets);
 
 			// disable those components
 			enableComponents(seqID);
@@ -457,65 +471,43 @@ void EucSeq_MultiStageAudioProcessorEditor::buttonClicked(juce::Button* button) 
 	else if (componentIDWithoutID == "SYNC_BUTTON") {
 		audioProcessor.synchronizeAll();
 	}
+	else if (componentIDWithoutID == "DOTTED_BUTTON") {
+		if (button->getToggleState() == true) {
+
+			// deseleccionamos el tripletsButton
+			tripletsButtons.at(seqID)->setToggleState(false, true);
+
+			button->setButtonText("Dotted\nOn");
+			audioProcessor.setDottedNotes(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
+		}
+		else {
+		
+			button->setButtonText("Dotted\nOff");
+			audioProcessor.setDottedNotes(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
+
+		}
+	}
+	else if (componentIDWithoutID == "TRIPLETS_BUTTON") {
+		if (button->getToggleState() == true) {
+
+			// deseleccionamos el dottedNotesButton
+			dottedButtons.at(seqID)->setToggleState(false, true);
+
+			button->setButtonText("Triplets\nOn");
+			audioProcessor.setTriplets(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
+		}
+		else {
+			button->setButtonText("Triplets\nOff");
+			audioProcessor.setTriplets(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
+
+		}
+	}
 }
 
 //==============================================================================
 
-//void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int id) {
-//
-//	if (!audioProcessor.getEuclideanRhythms().count(id))
-//		return;
-//	
-//	int numOfComponents = 9;
-//
-//	// bounds of the whole pluggin
-//	const auto bounds = getLocalBounds();
-//	// distance between components
-//	const auto padding = 10;
-//	// ancho del comp
-//	const auto componentWidth = 400 / numOfComponents - padding;
-//	// alto del slider
-//	const auto componentHeight = (bounds.getHeight()) / (NUM_TOTAL_ETAPAS+1) - 2 * padding;
-//	// donde empieza el primer componente eje X
-//	auto componentStartX = 0;
-//	// donde empieza el primer componente eje Y
-//	auto componentStartY = 0;
-//
-//	// numero de segmentos del ritmo
-//	const auto numseg = audioProcessor.getEuclideanRhythms().at(id)->get_steps();
-//	// anchura y altura de cada segmento
-//	int anchosegmento = (400 - componentWidth - (2*padding)) / numseg;
-//	int altosegmento = componentHeight;
-//	// donde empieza el primer segmento
-//	int startY = (componentHeight + padding)*id;
-//	int startX = 0;
-//
-//	vector<int> list = audioProcessor.getEuclideanRhythms().at(id)->get_euclideanRhythm();
-//	// EuclideanRhythmComponent e = (*(audioProcessor.getEuclideanRhythms().at(id));
-//
-//	int i = 0;
-//	for (auto itr = list.begin(); itr != list.end(); itr++) {
-//
-//		if ((*itr) == 1)
-//			g.setColour(juce::Colours::green);
-//		else
-//			g.setColour(juce::Colours::red);
-//
-//		if(audioProcessor.getEuclideanRhythms().at(id)->getIndex() == i)
-//			g.setColour(juce::Colours::white);
-//		
-//		g.fillRect(startX + anchosegmento * i,
-//			startY,
-//			anchosegmento,
-//			altosegmento);
-//		
-//		//startY = altosegmento + padding;
-//		i++;
-//	}
-//
-//}
 
-void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID) {
+void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID) {
 
 	if (!audioProcessor.getEuclideanRhythms().count(seqID))
 		return;
@@ -525,8 +517,10 @@ void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int s
 	float width = 100 * (NUM_TOTAL_ETAPAS - seqID);
 	float height = 100 * (NUM_TOTAL_ETAPAS - seqID);
 
-	vector<int> v = audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm();
-	int numSteps = v.size();
+	bool shiet = true;
+
+	//vector<int>* v = new vector<int>(audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm());
+	int numSteps = audioProcessor.getEuclideanRhythms().at(seqID)->get_steps();
 	float stepSize = 2 * juce::MathConstants<float>::pi / numSteps;
 	for (int i = 0; i < numSteps; i++) {
 		juce::Path pieSegments;
@@ -535,10 +529,14 @@ void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int s
 		pieSegments.addPieSegment(startX, startY,
 			width, height, startRadians, endRadians, 0.85f);
 		
-		if (v[i]) 
+		// TODO
+		// el problema esta al acceder al vector ! ! !! ! ! ! 
+		if (/*shiet*/audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm().at(i))
 			g.setColour(juce::Colours::green);
 		else
 			g.setColour(juce::Colours::red);
+
+		shiet = !shiet;
 		
 		if(audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
 			g.setColour(juce::Colours::white);
@@ -548,4 +546,5 @@ void EucSeq_MultiStageAudioProcessorEditor::paintRhythm(juce::Graphics& g, int s
 
 	}
 	
+	//v->~vector<int>();
 }

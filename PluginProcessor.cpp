@@ -92,7 +92,7 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
 
 
 
-EucSeq_MultiStageAudioProcessor::EucSeq_MultiStageAudioProcessor()
+EuclideanSequencerAudioProcessor::EuclideanSequencerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(BusesProperties()
 #if ! JucePlugin_IsMidiEffect
@@ -107,17 +107,17 @@ EucSeq_MultiStageAudioProcessor::EucSeq_MultiStageAudioProcessor()
 {
 }
 
-EucSeq_MultiStageAudioProcessor::~EucSeq_MultiStageAudioProcessor()
+EuclideanSequencerAudioProcessor::~EuclideanSequencerAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String EucSeq_MultiStageAudioProcessor::getName() const
+const juce::String EuclideanSequencerAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool EucSeq_MultiStageAudioProcessor::acceptsMidi() const
+bool EuclideanSequencerAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
     return true;
@@ -126,7 +126,7 @@ bool EucSeq_MultiStageAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool EucSeq_MultiStageAudioProcessor::producesMidi() const
+bool EuclideanSequencerAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
     return true;
@@ -135,7 +135,7 @@ bool EucSeq_MultiStageAudioProcessor::producesMidi() const
 #endif
 }
 
-bool EucSeq_MultiStageAudioProcessor::isMidiEffect() const
+bool EuclideanSequencerAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
     return true;
@@ -144,37 +144,37 @@ bool EucSeq_MultiStageAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double EucSeq_MultiStageAudioProcessor::getTailLengthSeconds() const
+double EuclideanSequencerAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int EucSeq_MultiStageAudioProcessor::getNumPrograms()
+int EuclideanSequencerAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int EucSeq_MultiStageAudioProcessor::getCurrentProgram()
+int EuclideanSequencerAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void EucSeq_MultiStageAudioProcessor::setCurrentProgram(int index)
+void EuclideanSequencerAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String EucSeq_MultiStageAudioProcessor::getProgramName(int index)
+const juce::String EuclideanSequencerAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void EucSeq_MultiStageAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void EuclideanSequencerAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void EucSeq_MultiStageAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void EuclideanSequencerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -186,14 +186,14 @@ void EucSeq_MultiStageAudioProcessor::prepareToPlay(double sampleRate, int sampl
 
 }
 
-void EucSeq_MultiStageAudioProcessor::releaseResources()
+void EuclideanSequencerAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool EucSeq_MultiStageAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool EuclideanSequencerAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused(layouts);
@@ -218,7 +218,7 @@ bool EucSeq_MultiStageAudioProcessor::isBusesLayoutSupported(const BusesLayout& 
 }
 #endif
 
-void EucSeq_MultiStageAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 
     // however we use the buffer to get timing information
@@ -234,25 +234,25 @@ void EucSeq_MultiStageAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 }
 
 //==============================================================================
-bool EucSeq_MultiStageAudioProcessor::hasEditor() const
+bool EuclideanSequencerAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* EucSeq_MultiStageAudioProcessor::createEditor()
+juce::AudioProcessorEditor* EuclideanSequencerAudioProcessor::createEditor()
 {
-    return new EucSeq_MultiStageAudioProcessorEditor(*this);
+    return new EuclideanSequencerAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void EucSeq_MultiStageAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+void EuclideanSequencerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void EucSeq_MultiStageAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -262,7 +262,7 @@ void EucSeq_MultiStageAudioProcessor::setStateInformation(const void* data, int 
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new EucSeq_MultiStageAudioProcessor();
+    return new EuclideanSequencerAudioProcessor();
 }
 
 
@@ -271,16 +271,16 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 //==============================================================================
 
 // Function that returns a layout of the parameters
-juce::AudioProcessorValueTreeState::ParameterLayout EucSeq_MultiStageAudioProcessor::createParameters() {
+juce::AudioProcessorValueTreeState::ParameterLayout EuclideanSequencerAudioProcessor::createParameters() {
 
     // Vector with the parameters
     vector<unique_ptr<juce::RangedAudioParameter>> paramsVector;
 
     // We add elements to the vector
     for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
-        paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS" + to_string(i), "Steps " + to_string(i), 1, 16, 8));
-        paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS" + to_string(i), "Events " + to_string(i), 0, 16, 4));
-        paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION" + to_string(i), "Rotation " + to_string(i), 0, 16, 0));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS" + to_string(i), "Steps " + to_string(i), 1, 32, 8));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS" + to_string(i), "Events " + to_string(i), 0, 32, 4));
+        paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION" + to_string(i), "Rotation " + to_string(i), 0, 32, 0));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY" + to_string(i), "Velocity " + to_string(i), 0, 127, 127));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("GATE" + to_string(i), "Gate " + to_string(i), 0, 400, 100));
     }
@@ -290,32 +290,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout EucSeq_MultiStageAudioProces
 
 }
 
-void EucSeq_MultiStageAudioProcessor::setNewNoteNumber(int value, int seqID) {
+void EuclideanSequencerAudioProcessor::setNewNoteNumber(int value, int seqID) {
     if (euclideanRhythms.count(seqID))
         euclideanRhythms.at(seqID)->set_noteNumber(value);
 }
 
-void EucSeq_MultiStageAudioProcessor::setNewStepFigure(float duration, int seqID) {
+void EuclideanSequencerAudioProcessor::setNewStepFigure(float duration, int seqID) {
     if (euclideanRhythms.count(seqID))
         euclideanRhythms.at(seqID)->set_figureStep(duration);
 }
 
-void EucSeq_MultiStageAudioProcessor::createRythm(int id, int steps, int events, int rotation,
+void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events, int rotation,
     int velocity, int gate, int noteNumber, float figureStep, bool directionParam, bool reverseParam,
-    bool pingPongParam) {
+    bool pingPongParam, bool dottedNotesParam, bool tripletsParam) {
 
     euclideanRhythms.insert({
         id,
-        new EuclideanRhythmComponent(rate, bpm, steps, events, rotation, velocity, gate, noteNumber,
-        figureStep, directionParam, reverseParam, pingPongParam)
+        new EuclideanRhythm(rate, bpm, steps, events, rotation, velocity, gate, noteNumber,
+        figureStep, directionParam, reverseParam, pingPongParam, dottedNotesParam, tripletsParam)
         });
 }
 
-void EucSeq_MultiStageAudioProcessor::deleteRythm(int id) {
+void EuclideanSequencerAudioProcessor::deleteRythm(int id) {
     euclideanRhythms.erase(id);
 }
 
-void EucSeq_MultiStageAudioProcessor::setReverseDirection(int seqID, bool reverse) {
+void EuclideanSequencerAudioProcessor::setReverseDirection(int seqID, bool reverse) {
     if (euclideanRhythms.count(seqID)) {
         euclideanRhythms.at(seqID)->set_reverse(reverse);
         // si reverse = false => direccion es false ( hacia la izq <- )
@@ -326,7 +326,7 @@ void EucSeq_MultiStageAudioProcessor::setReverseDirection(int seqID, bool revers
     }
 }
 
-void EucSeq_MultiStageAudioProcessor::setNewPingPong(int id, bool value) {
+void EuclideanSequencerAudioProcessor::setNewPingPong(int id, bool value) {
     if (euclideanRhythms.count(id)) {
         euclideanRhythms.at(id)->set_pingPong(value);
         // si pingPong = false => devolvemos la direccion a true ( hacia la derecha -> )
@@ -335,7 +335,7 @@ void EucSeq_MultiStageAudioProcessor::setNewPingPong(int id, bool value) {
     }
 }
 
-void EucSeq_MultiStageAudioProcessor::synchronizeAll() {
+void EuclideanSequencerAudioProcessor::synchronizeAll() {
     for (auto itr = euclideanRhythms.begin(); itr != euclideanRhythms.end(); itr++) {
         itr->second->convertBPMToTime();
         itr->second->setTimeStep(0);
@@ -346,19 +346,46 @@ void EucSeq_MultiStageAudioProcessor::synchronizeAll() {
     }
 }
 
-map<int, EuclideanRhythmComponent*> EucSeq_MultiStageAudioProcessor::getEuclideanRhythms() {
+void EuclideanSequencerAudioProcessor::setDottedNotes(int seqID, bool value, float figureStep) {
+    if (euclideanRhythms.count(seqID)) {
+        euclideanRhythms.at(seqID)->set_triplets(value);
+        float newDuration;
+        if (value)
+            newDuration = figureStep * (3.0f / 2.0f);
+        else
+            newDuration = figureStep;
+        
+        euclideanRhythms.at(seqID)->set_figureStep(newDuration);
+    }
+}
+
+void EuclideanSequencerAudioProcessor::setTriplets(int seqID, bool value, float figureStep) {
+    if (euclideanRhythms.count(seqID)) {
+        euclideanRhythms.at(seqID)->set_dottedNotes(value);
+        float newDuration;
+        if (value)
+            newDuration = figureStep * (2.0f / 3.0f);
+        else
+            newDuration = figureStep;
+
+        euclideanRhythms.at(seqID)->set_figureStep(newDuration);
+
+    }
+}
+
+map<int, EuclideanRhythm*> EuclideanSequencerAudioProcessor::getEuclideanRhythms() {
     return euclideanRhythms;
 }
 
 
 //==============================================================================
 
-void EucSeq_MultiStageAudioProcessor::initNotesOnMap() {
+void EuclideanSequencerAudioProcessor::initNotesOnMap() {
     for (int i = 24; i <= 107; i++)
         notesOn.insert({ i, 0 });
 }
 
-int EucSeq_MultiStageAudioProcessor::getBPM() {
+int EuclideanSequencerAudioProcessor::getBPM() {
 
     int bpm_aux;
 
@@ -375,11 +402,11 @@ int EucSeq_MultiStageAudioProcessor::getBPM() {
 
 
 // funcion que refresca el valor de currentSample 
-int EucSeq_MultiStageAudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSampleInBar) {
+int EuclideanSequencerAudioProcessor::getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSampleInBar) {
     return ((float)newNumSamplesPerBar / (float)numSamplesPerBar) * (float)currentSampleInBar;
 }
 
-int EucSeq_MultiStageAudioProcessor::getIndexFromCurrentSample(EuclideanRhythmComponent* e) {
+int EuclideanSequencerAudioProcessor::getIndexFromCurrentSample(EuclideanRhythm* e) {
     if (e->get_steps() == 0)
         return 0;
     int aux;
@@ -392,7 +419,7 @@ int EucSeq_MultiStageAudioProcessor::getIndexFromCurrentSample(EuclideanRhythmCo
 
 //==============================================================================
 
-void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythmComponent* euclideanRhythm, int ID) {
+void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythm* euclideanRhythm, int ID) {
 
     int gate = *apvts.getRawParameterValue("GATE" + to_string(ID));
     euclideanRhythm->set_gate(gate);
@@ -443,6 +470,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
 
             DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << itr->first <<
+                " figureStep " << euclideanRhythm->get_figureStep() <<
                 " index " << euclideanRhythm->getIndex() <<
                 " on (" << steps << "," << events << ") " <<
                 " rotation " << euclideanRhythm->get_rotation() <<
@@ -485,6 +513,7 @@ void EucSeq_MultiStageAudioProcessor::processSequencer(juce::MidiBuffer& midiMes
             auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
             DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << note <<
+                " figureStep " << euclideanRhythm->get_figureStep() <<
                 " index " << euclideanRhythm->getIndex() <<
                 " on (" << steps << "," << events << ") " <<
                 " rotation " << euclideanRhythm->get_rotation() <<
