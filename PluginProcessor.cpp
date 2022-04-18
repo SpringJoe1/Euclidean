@@ -176,6 +176,7 @@ void EuclideanSequencerAudioProcessor::changeProgramName(int index, const juce::
 //==============================================================================
 void EuclideanSequencerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     rate = static_cast<float> (sampleRate);
@@ -421,6 +422,8 @@ int EuclideanSequencerAudioProcessor::getIndexFromCurrentSample(EuclideanRhythm*
 
 void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythm* euclideanRhythm, int ID) {
 
+
+
     int gate = *apvts.getRawParameterValue("GATE" + to_string(ID));
     euclideanRhythm->set_gate(gate);
 
@@ -436,7 +439,10 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
     int events = *apvts.getRawParameterValue("EVENTS" + to_string(ID));
     int newRotation = *apvts.getRawParameterValue("ROTATION" + to_string(ID));
 
+    my_mutex[ID].lock();
     euclideanRhythm->set_euclideanRhythm(steps, events);
+    my_mutex[ID].unlock();
+
 
     // check if it has to rotate, and if it has to do it to the right or to the left
     if (newRotation > euclideanRhythm->get_rotation()) {

@@ -18,6 +18,7 @@
 #include <string>
 #include "EuclideanRhythm.h"
 #include <map>
+#include <mutex>
 
 using namespace std;
 
@@ -28,6 +29,12 @@ using namespace std;
 class EuclideanSequencerAudioProcessor : public juce::AudioProcessor
 {
 public:
+
+    // mutex que controla la sincronia
+    mutex my_mutex[NUM_TOTAL_ETAPAS];
+
+
+
     //==============================================================================
     EuclideanSequencerAudioProcessor();
     ~EuclideanSequencerAudioProcessor() override;

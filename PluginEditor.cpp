@@ -14,8 +14,8 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
-	// 60 Hz
-	Timer::startTimer(60.0f);
+	// 180 Hz
+	Timer::startTimer(180.0f);
 
 	// alias para que sea m�s legible
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -115,8 +115,13 @@ void EuclideanSequencerAudioProcessorEditor::paint(juce::Graphics& g)
 
 	// TODO
 	/// fixear el pintado
-	for(int seqID = 0; seqID < NUM_TOTAL_ETAPAS; seqID++)
+	for (int seqID = 0; seqID < NUM_TOTAL_ETAPAS; seqID++) {
+		audioProcessor.my_mutex[seqID].lock();
 		paintRhythm(g, seqID);
+		audioProcessor.my_mutex[seqID].unlock();
+
+	}
+		
 
 
 	//repaint();
@@ -400,7 +405,6 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 	DBG("int componentIDLastInt " << componentIDLast);
 
 
-	// Si es el caso del combobox de NOTE_NUMBER_COMBOBOX
 	if (componentIDWithoutID == "ON_OFF_BUTTON") {
 		if (button->getToggleState() == false) {
 			// change button text
@@ -509,19 +513,22 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID) {
 
+
 	if (!audioProcessor.getEuclideanRhythms().count(seqID))
 		return;
+
 
 	float startX = 50 * seqID;
 	float startY = 50 * seqID;
 	float width = 100 * (NUM_TOTAL_ETAPAS - seqID);
 	float height = 100 * (NUM_TOTAL_ETAPAS - seqID);
 
-	bool shiet = true;
-
 	//vector<int>* v = new vector<int>(audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm());
 	int numSteps = audioProcessor.getEuclideanRhythms().at(seqID)->get_steps();
+	
+	// anchura de cada step en radianes
 	float stepSize = 2 * juce::MathConstants<float>::pi / numSteps;
+
 	for (int i = 0; i < numSteps; i++) {
 		juce::Path pieSegments;
 		float startRadians = stepSize * i;
@@ -531,12 +538,12 @@ void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int 
 		
 		// TODO
 		// el problema esta al acceder al vector ! ! !! ! ! ! 
-		if (/*shiet*/audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm().at(i))
+		if (/*shiet*/audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm().at(i) == 1)
 			g.setColour(juce::Colours::green);
 		else
 			g.setColour(juce::Colours::red);
 
-		shiet = !shiet;
+
 		
 		if(audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
 			g.setColour(juce::Colours::white);
