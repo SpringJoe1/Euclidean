@@ -14,47 +14,61 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 
-	// 180 Hz
-	Timer::startTimer(180.0f);
+	// 60 Hz
+	Timer::startTimer(60.0f);
 
 	// alias para que sea m�s legible
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 
-		// on-off button
+		// on-off button builder
 		onOffButtons.insert({ i, new juce::TextButton{"onOffButton"} });
 		onOffButtons.at(i)->setButtonText("Off");
 		setTextButtonParams(*onOffButtons.at(i), "ON_OFF_BUTTON" + to_string(i));
 
-		// memory allocation
+		onOffButtonAttachments.insert({ i, nullptr });
+		onOffButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "ON_OFF_BUTTON" + to_string(i), (*onOffButtons.at(i))));
+
+		// sliders builders
 		stepsSliders.insert({ i, new juce::Slider()});
-		stepsSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "STEPS" + to_string(i), (*stepsSliders.at(i))) });
-		
-		eventsSliders.insert({ i, new juce::Slider()});
-		eventsSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "EVENTS" + to_string(i), (*eventsSliders.at(i))) });
-		
-		rotationSliders.insert({ i, new juce::Slider()});
-		rotationSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "ROTATION" + to_string(i), (*rotationSliders.at(i))) });
-		
-		velocitySliders.insert({ i, new juce::Slider()});
-		velocitySliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "VELOCITY" + to_string(i), (*velocitySliders.at(i))) });
-		
-		gateSliders.insert({ i, new juce::Slider()});
-		gateSliderAttachments.insert({ i, make_unique<SliderAttachment>(audioProcessor.apvts, "GATE" + to_string(i), (*gateSliders.at(i))) });
-
-
 		setSliderParams(*stepsSliders.at(i));
+		stepsSliderAttachments.insert({ i, nullptr});
+		stepsSliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "STEPS" + to_string(i), (*stepsSliders.at(i))));
+		
+		eventsSliders.insert({ i, new juce::Slider() });
 		setSliderParams(*eventsSliders.at(i));
-		setSliderParams(*rotationSliders.at(i));
-		setSliderParams(*velocitySliders.at(i));
-		setSliderParams(*gateSliders.at(i));
+		eventsSliderAttachments.insert({ i, nullptr });
+		eventsSliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "EVENTS" + to_string(i), (*eventsSliders.at(i))));
 
+		rotationSliders.insert({ i, new juce::Slider() });
+		setSliderParams(*rotationSliders.at(i));
+		rotationSliderAttachments.insert({ i, nullptr });
+		rotationSliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "ROTATION" + to_string(i), (*rotationSliders.at(i))));
+
+		velocitySliders.insert({ i, new juce::Slider() });
+		setSliderParams(*velocitySliders.at(i));
+		velocitySliderAttachments.insert({ i, nullptr });
+		velocitySliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "VELOCITY" + to_string(i), (*velocitySliders.at(i))));
+
+		gateSliders.insert({ i, new juce::Slider() });
+		setSliderParams(*gateSliders.at(i));
+		gateSliderAttachments.insert({ i, nullptr });
+		gateSliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "GATE" + to_string(i), (*gateSliders.at(i))));
+
+		// noteNomber combobox
 		noteNumberComboBoxes.insert({ i, new juce::ComboBox() });
 		setNoteNumberComboBoxParams(*noteNumberComboBoxes.at(i), "NOTE_NUMBER_COMBOBOX" + to_string(i));
 
+		noteNumberComboBoxAttachments.insert({ i, nullptr });
+		noteNumberComboBoxAttachments.at(i).reset(new ComboBoxAttachment(audioProcessor.apvts, "NOTE_NUMBER_COMBOBOX" + to_string(i), (*noteNumberComboBoxes.at(i))));
+
+		// stepDuration combobox
 		stepDurationComboBoxes.insert({ i, new juce::ComboBox() });
 		setDurationComboBoxParams(*stepDurationComboBoxes.at(i), "STEP_DURATION_COMBOBOX" + to_string(i));
+
+		stepDurationComboBoxAttachments.insert({ i, nullptr });
+		stepDurationComboBoxAttachments.at(i).reset(new ComboBoxAttachment(audioProcessor.apvts, "STEP_DURATION_COMBOBOX" + to_string(i), (*stepDurationComboBoxes.at(i))));
 
 		// reverse direction button
 		reverseButtons.insert({ i, new juce::TextButton{"reverseButton"} });
@@ -62,11 +76,17 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		reverseButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*reverseButtons.at(i), "REVERSE_BUTTON" + to_string(i));
 
+		reverseButtonAttachments.insert({ i, nullptr });
+		reverseButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "REVERSE_BUTTON" + to_string(i), (*reverseButtons.at(i))));
+
 		// ping-pong direction button
 		pingPongButtons.insert({ i, new juce::TextButton{"pingPongButton"} });
 		pingPongButtons.at(i)->setButtonText("Ping Pong\nOff");
 		pingPongButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*pingPongButtons.at(i), "PING_PONG_BUTTON" + to_string(i));
+
+		pingPongButtonAttachments.insert({ i, nullptr });
+		pingPongButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "PING_PONG_BUTTON" + to_string(i), (*pingPongButtons.at(i))));
 
 		// triplets button
 		tripletsButtons.insert({ i, new juce::TextButton{"tripletsButton"} });
@@ -74,11 +94,19 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		tripletsButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*tripletsButtons.at(i), "TRIPLETS_BUTTON" + to_string(i));
 
+		tripletsButtonAttachments.insert({ i, nullptr });
+		tripletsButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "TRIPLETS_BUTTON" + to_string(i), (*tripletsButtons.at(i))));
+
 		// dotted button
 		dottedButtons.insert({ i, new juce::TextButton{"dottedButton"} });
 		dottedButtons.at(i)->setButtonText("Dotted\nOff");
 		dottedButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*dottedButtons.at(i), "DOTTED_BUTTON" + to_string(i));
+
+		dottedButtonAttachments.insert({ i, nullptr });
+		dottedButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "DOTTED_BUTTON" + to_string(i), (*dottedButtons.at(i))));
+
+
 	}
 	
 	// Re-Sync button
@@ -115,14 +143,23 @@ void EuclideanSequencerAudioProcessorEditor::paint(juce::Graphics& g)
 
 	// TODO
 	/// fixear el pintado
+	float innerCircle = 0.8f;
 	for (int seqID = 0; seqID < NUM_TOTAL_ETAPAS; seqID++) {
+		
 		audioProcessor.my_mutex[seqID].lock();
-		paintRhythm(g, seqID);
+
+		// si ese ritmo no existe pasa a la siguiente operación
+		if (!audioProcessor.getEuclideanRhythms().count(seqID)) {
+			audioProcessor.my_mutex[seqID].unlock();
+			continue;
+		}
+
+		paintRhythm(g, seqID, innerCircle);
+		innerCircle -= 0.05f;
 		audioProcessor.my_mutex[seqID].unlock();
 
 	}
 		
-
 
 	//repaint();
 }
@@ -174,6 +211,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 }
 
 //==============================================================================
+
 void EuclideanSequencerAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
 	
 	if(id != "SYNC_BUTTON4")
@@ -511,47 +549,73 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 //==============================================================================
 
 
-void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID) {
+void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID, float innerCircleProp) {
 
-
-	if (!audioProcessor.getEuclideanRhythms().count(seqID))
-		return;
-
-
+	// dimensions
 	float startX = 50 * seqID;
 	float startY = 50 * seqID;
 	float width = 100 * (NUM_TOTAL_ETAPAS - seqID);
 	float height = 100 * (NUM_TOTAL_ETAPAS - seqID);
 
-	//vector<int>* v = new vector<int>(audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm());
+	// colour selection
+	juce::Colour colourOn;
+	switch (seqID)
+	{
+	case 0:
+		colourOn = juce::Colours::lightcoral; //indianred
+		break;
+	case 1:
+		colourOn = juce::Colours::lightsalmon; // lightpink
+		break;
+	case 2:
+		colourOn = juce::Colours::lightgreen;
+		break;
+	case 3:
+		colourOn = juce::Colours::lightskyblue; // lightskyblue
+		break;
+	default:
+		break;
+	}
+
+	// numero de steps
 	int numSteps = audioProcessor.getEuclideanRhythms().at(seqID)->get_steps();
-	
 	// anchura de cada step en radianes
 	float stepSize = 2 * juce::MathConstants<float>::pi / numSteps;
 
+	// loop para pintar los steps
 	for (int i = 0; i < numSteps; i++) {
+		
 		juce::Path pieSegments;
 		float startRadians = stepSize * i;
-		float endRadians = startRadians + stepSize;
-		pieSegments.addPieSegment(startX, startY,
-			width, height, startRadians, endRadians, 0.85f);
-		
+		float endRadians = startRadians + (stepSize * 0.95f);
+
+
+		// notas en On
+		if (audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm().at(i) == 1) {
+			pieSegments.addPieSegment(startX, startY, width, height, startRadians, endRadians, innerCircleProp);
+			g.setColour(colourOn);
+		}
+		// notas en Off
+		else {
+			startRadians = stepSize * (i+0.25f);
+			endRadians = startRadians + (stepSize*0.5f);
+			pieSegments.addPieSegment(startX, startY, width, height, startRadians, endRadians, 0.95f);
+			g.setColour(juce::Colours::silver);
+		}
+			
+
 		// TODO
 		// el problema esta al acceder al vector ! ! !! ! ! ! 
-		if (/*shiet*/audioProcessor.getEuclideanRhythms().at(seqID)->get_euclideanRhythm().at(i) == 1)
-			g.setColour(juce::Colours::green);
-		else
-			g.setColour(juce::Colours::red);
-
-
+		// chequear funcion sleep(miliseconds) en funcion de la duracion de la nota
 		
-		if(audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
+		// nota que está sonando
+		if (audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
 			g.setColour(juce::Colours::white);
 		
+
 		g.fillPath(pieSegments);
 		pieSegments.clear();
 
 	}
 	
-	//v->~vector<int>();
 }

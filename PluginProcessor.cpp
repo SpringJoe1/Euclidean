@@ -251,12 +251,20 @@ void EuclideanSequencerAudioProcessor::getStateInformation(juce::MemoryBlock& de
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+
+    // TODO  ! ! ! ! ! ! !
+    // https://docs.juce.com/master/tutorial_audio_processor_value_tree_state.html
+    // https://docs.juce.com/master/tutorial_audio_parameter.html
+
 }
 
 //==============================================================================
@@ -279,11 +287,27 @@ juce::AudioProcessorValueTreeState::ParameterLayout EuclideanSequencerAudioProce
 
     // We add elements to the vector
     for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
+
+        paramsVector.push_back(make_unique<juce::AudioParameterBool>("ON_OFF_BUTTON" + to_string(i), "onOff Button " + to_string(i), false));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("STEPS" + to_string(i), "Steps " + to_string(i), 1, 32, 8));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("EVENTS" + to_string(i), "Events " + to_string(i), 0, 32, 4));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("ROTATION" + to_string(i), "Rotation " + to_string(i), 0, 32, 0));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("VELOCITY" + to_string(i), "Velocity " + to_string(i), 0, 127, 127));
         paramsVector.push_back(make_unique<juce::AudioParameterInt>("GATE" + to_string(i), "Gate " + to_string(i), 0, 400, 100));
+        paramsVector.push_back(make_unique<juce::AudioParameterBool>("REVERSE_BUTTON" + to_string(i), "Reverse Button " + to_string(i), false));
+        paramsVector.push_back(make_unique<juce::AudioParameterBool>("PING_PONG_BUTTON" + to_string(i), "Ping Pong Button " + to_string(i), false));
+        paramsVector.push_back(make_unique<juce::AudioParameterBool>("TRIPLETS_BUTTON" + to_string(i), "Triplets Button " + to_string(i), false));
+        paramsVector.push_back(make_unique<juce::AudioParameterBool>("DOTTED_BUTTON" + to_string(i), "Dotted Button " + to_string(i), false));
+        paramsVector.push_back(make_unique<juce::AudioParameterChoice>("NOTE_NUMBER_COMBOBOX" + to_string(i),"Note number " + to_string(i),
+            juce::StringArray("C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
+                "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1",
+                "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
+                "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3",
+                "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4",
+                "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5",
+                "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6"), 48));
+        paramsVector.push_back(make_unique<juce::AudioParameterChoice>("STEP_DURATION_COMBOBOX" + to_string(i), "Step duration " + to_string(i),
+            juce::StringArray("1", "1/2", "1/4","1/8", "1/16", "1/32", "1/64"), 2));
     }
 
     // Return the vector
@@ -391,12 +415,12 @@ int EuclideanSequencerAudioProcessor::getBPM() {
     int bpm_aux;
 
     // para probar en visual comentar esto
-    /*playHead = this->getPlayHead();
+    playHead = this->getPlayHead();
     playHead->getCurrentPosition(currentPositionInfo);
-    bpm_aux = currentPositionInfo.bpm;*/
+    bpm_aux = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    bpm_aux = 120;
+    //bpm_aux = 120;
 
     return bpm_aux;
 }

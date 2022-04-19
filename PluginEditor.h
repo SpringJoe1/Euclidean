@@ -35,7 +35,9 @@ private:
 
     //==============================================================================
 
-    void paintRhythm(juce::Graphics& g,int seqID);
+    void paintTrigger();
+    void paintRhythm(juce::Graphics& g,int seqID, float innerCircleProp);
+    map<int, int> indexes;
 
     //==============================================================================
     
@@ -59,8 +61,7 @@ private:
     // access the processor object that created it.
     EuclideanSequencerAudioProcessor& audioProcessor;
 
-    // alias para que sea mas legible
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    juce::TextButton* syncButton;
 
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
@@ -68,13 +69,19 @@ private:
     map<int, juce::TextButton*> tripletsButtons;
     map<int, juce::TextButton*> dottedButtons;
 
-    juce::TextButton* syncButton;
-
     map<int, juce::Slider*> stepsSliders;
     map<int, juce::Slider*> eventsSliders;
     map<int, juce::Slider*> rotationSliders;
     map<int, juce::Slider*> velocitySliders;
     map<int, juce::Slider*> gateSliders;
+
+    map<int, juce::ComboBox*> noteNumberComboBoxes;
+    map<int, juce::ComboBox*> stepDurationComboBoxes;
+
+    // alias para que sea mas legible
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
     map<int, unique_ptr<SliderAttachment>> stepsSliderAttachments;
     map<int, unique_ptr<SliderAttachment>> eventsSliderAttachments;
@@ -82,8 +89,14 @@ private:
     map<int, unique_ptr<SliderAttachment>> velocitySliderAttachments;
     map<int, unique_ptr<SliderAttachment>> gateSliderAttachments;
 
-    map<int, juce::ComboBox*> noteNumberComboBoxes;
-    map<int, juce::ComboBox*> stepDurationComboBoxes;
+    map<int, unique_ptr<ButtonAttachment>> onOffButtonAttachments;
+    map<int, unique_ptr<ButtonAttachment>> reverseButtonAttachments;
+    map<int, unique_ptr<ButtonAttachment>> pingPongButtonAttachments;
+    map<int, unique_ptr<ButtonAttachment>> tripletsButtonAttachments;
+    map<int, unique_ptr<ButtonAttachment>> dottedButtonAttachments;
+
+    map<int, unique_ptr<ComboBoxAttachment>> noteNumberComboBoxAttachments;
+    map<int, unique_ptr<ComboBoxAttachment>> stepDurationComboBoxAttachments;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EuclideanSequencerAudioProcessorEditor)
