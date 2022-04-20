@@ -231,6 +231,11 @@ void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& bu
         processSequencer(midiMessages, itr->second, itr->first);
     }
 
+    // evitamos que queden notas residuales
+    if (euclideanRhythms.empty()) {
+        auto m = juce::MidiMessage::allNotesOff(midiChannel);
+        midiMessages.addEvent(m,0);
+    }
     //processSequencer(midiMessages, euclideanRhythms.at(0), 0);
 }
 
@@ -251,9 +256,12 @@ void EuclideanSequencerAudioProcessor::getStateInformation(juce::MemoryBlock& de
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-    auto state = apvts.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
+
+    //auto state = apvts.copyState();
+    //unique_ptr<juce::XmlElement> xml(state.createXml());
+    //copyXmlToBinary(*xml, destData);
+
+
 }
 
 void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
@@ -261,9 +269,14 @@ void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 
-    // TODO  ! ! ! ! ! ! !
-    // https://docs.juce.com/master/tutorial_audio_processor_value_tree_state.html
-    // https://docs.juce.com/master/tutorial_audio_parameter.html
+    //unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    //if (xmlState.get() != nullptr)
+    //    if (xmlState->hasTagName(apvts.state.getType()))
+    //        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+    //
+ 
+
 
 }
 
@@ -337,6 +350,12 @@ void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events
 }
 
 void EuclideanSequencerAudioProcessor::deleteRythm(int id) {
+    
+    for (auto itr = euclideanRhythms.at(id)->notesDurationMap.begin(); itr != euclideanRhythms.at(id)->notesDurationMap.end(); ++itr)
+        notesOn[itr->first]--;
+    
+    euclideanRhythms.at(id)->notesDurationMap.clear();
+    euclideanRhythms.at(id)->notesToDeleteFromMap.clear();
     euclideanRhythms.erase(id);
 }
 
@@ -371,6 +390,8 @@ void EuclideanSequencerAudioProcessor::synchronizeAll() {
     }
 }
 
+
+
 void EuclideanSequencerAudioProcessor::setDottedNotes(int seqID, bool value, float figureStep) {
     if (euclideanRhythms.count(seqID)) {
         euclideanRhythms.at(seqID)->set_triplets(value);
@@ -402,6 +423,41 @@ map<int, EuclideanRhythm*> EuclideanSequencerAudioProcessor::getEuclideanRhythms
     return euclideanRhythms;
 }
 
+void EuclideanSequencerAudioProcessor::savePreset() {
+    
+    // guardamos en state el valor del apvts
+    auto state = apvts.copyState();
+    // creamos un objeto XmlElement con ese estado
+    unique_ptr<juce::XmlElement> xml(state.createXml());
+    
+    //// TODO -- cambiar a personalizable
+    // recogemos el nombre del file que deseamos
+    juce::String fileName = "\\preset1.xml";
+    juce::String filePath = "C:\\UCM\\EuclideanSequencer\\Presets" + fileName;
+    juce::File file (filePath);
+
+    // guardamos el file con el preset 
+    xml->writeTo(file, juce::XmlElement::TextFormat());
+   
+}
+
+void EuclideanSequencerAudioProcessor::loadPreset() {
+   
+    // leer el file que queremos
+    // ---
+
+
+    ///////////////////////// TODO
+    // convertir 
+    unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+
+}
+
 
 //==============================================================================
 
@@ -415,12 +471,12 @@ int EuclideanSequencerAudioProcessor::getBPM() {
     int bpm_aux;
 
     // para probar en visual comentar esto
-    playHead = this->getPlayHead();
-    playHead->getCurrentPosition(currentPositionInfo);
-    bpm_aux = currentPositionInfo.bpm;
+    //playHead = this->getPlayHead();
+    //playHead->getCurrentPosition(currentPositionInfo);
+    //bpm_aux = currentPositionInfo.bpm;
 
     // para probar en ableton (DAW que sea) comentar esto
-    //bpm_aux = 120;
+    bpm_aux = 120;
 
     return bpm_aux;
 }

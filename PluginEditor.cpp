@@ -15,10 +15,7 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 {
 
 	// 60 Hz
-	Timer::startTimer(60.0f);
-
-	// alias para que sea m�s legible
-	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+	//Timer::startTimer(60.0f);
 
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 
@@ -113,24 +110,33 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	syncButton = new juce::TextButton{ "syncButton" };
 	syncButton->setButtonText("Re-Sync");
 	setTextButtonParams(*syncButton, "SYNC_BUTTON4");
+
+	// Save Preset button
+	savePresetButton = new juce::TextButton{ "savePresetButton" };
+	savePresetButton->setButtonText("Save Preset");
+	setTextButtonParams(*savePresetButton, "SAVE_PRESET_BUTTON4");
+
+	// Load Preset button
+	loadPresetButton = new juce::TextButton{ "loadPresetButton" };
+	loadPresetButton->setButtonText("Load Preset");
+	setTextButtonParams(*loadPresetButton, "LOAD_PRESET_BUTTON4");
 	
 	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
 
-
 }
 
 EuclideanSequencerAudioProcessorEditor::~EuclideanSequencerAudioProcessorEditor()
 {
-	stopTimer();
+	//stopTimer();
 }
 
 //==============================================================================
 
-void EuclideanSequencerAudioProcessorEditor::timerCallback() {
-	repaint();
-}
+//void EuclideanSequencerAudioProcessorEditor::timerCallback() {
+//	repaint();
+//}
 
 //==============================================================================
 
@@ -161,7 +167,7 @@ void EuclideanSequencerAudioProcessorEditor::paint(juce::Graphics& g)
 	}
 		
 
-	//repaint();
+	repaint();
 }
 
 void EuclideanSequencerAudioProcessorEditor::resized()
@@ -206,7 +212,8 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	}
 
 	syncButton->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
-
+	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
+	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
 
 }
 
@@ -214,7 +221,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 
 void EuclideanSequencerAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
 	
-	if(id != "SYNC_BUTTON4")
+	if(id != "SYNC_BUTTON4" && id != "SAVE_PRESET_BUTTON4" && id != "LOAD_PRESET_BUTTON4")
 		// en la UI el button se quedará pulsado
 		textButton.setClickingTogglesState(true);
 
@@ -544,6 +551,12 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 		}
 	}
+	else if (componentIDWithoutID == "SAVE_PRESET_BUTTON") {
+		audioProcessor.savePreset();
+	}
+	else if (componentIDWithoutID == "LOAD_PRESET_BUTTON") {
+		audioProcessor.loadPreset();
+	}
 }
 
 //==============================================================================
@@ -600,7 +613,7 @@ void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int 
 			startRadians = stepSize * (i+0.25f);
 			endRadians = startRadians + (stepSize*0.5f);
 			pieSegments.addPieSegment(startX, startY, width, height, startRadians, endRadians, 0.95f);
-			g.setColour(juce::Colours::silver);
+			g.setColour(juce::Colours::darkgrey); //silver
 		}
 			
 

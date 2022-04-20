@@ -19,8 +19,8 @@ using namespace std;
 */
 class EuclideanSequencerAudioProcessorEditor : public juce::AudioProcessorEditor,
     public juce::ComboBox::Listener,
-    public juce::Button::Listener,
-    public juce::Timer
+    public juce::Button::Listener
+    //public juce::Timer
 {
 public:
    EuclideanSequencerAudioProcessorEditor(EuclideanSequencerAudioProcessor&);
@@ -29,7 +29,7 @@ public:
     //==============================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
-    void timerCallback() override;
+    //void timerCallback() override;
 
 private:
 
@@ -62,6 +62,8 @@ private:
     EuclideanSequencerAudioProcessor& audioProcessor;
 
     juce::TextButton* syncButton;
+    juce::TextButton* savePresetButton;
+    juce::TextButton* loadPresetButton;
 
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;

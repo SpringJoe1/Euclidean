@@ -91,6 +91,9 @@ public:
     void synchronizeAll();
     void setDottedNotes(int seqID, bool value, float newDuration);
     void setTriplets(int seqID, bool value, float newDuration);
+    void savePreset();
+    void loadPreset();
+
     map<int, EuclideanRhythm*> getEuclideanRhythms();
 
     //==============================================================================
