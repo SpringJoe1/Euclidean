@@ -120,6 +120,17 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	loadPresetButton = new juce::TextButton{ "loadPresetButton" };
 	loadPresetButton->setButtonText("Load Preset");
 	setTextButtonParams(*loadPresetButton, "LOAD_PRESET_BUTTON4");
+
+
+
+	// shiet button
+	shietButtons.insert({ 0, new juce::TextButton{"shietButton"} });
+	shietButtons.at(0)->setButtonText("Shiet\nOff");
+	setTextButtonParams(*shietButtons.at(0), "SHIET_BUTTON" + to_string(0));
+
+	shietButtonAttachments.insert({ 0, nullptr });
+	shietButtonAttachments.at(0).reset(new ButtonAttachment(audioProcessor.apvts, "SHIET_BUTTON" + to_string(0), (*shietButtons.at(0))));
+
 	
 	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
@@ -214,6 +225,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	syncButton->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
 	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
 	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
+	shietButtons.at(0)->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
 
 }
 
@@ -434,7 +446,7 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 }
 
 void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button) {
-	
+
 	DBG("!!!! BUTTON !!!");
 	// string que almacena el ID del combobox + seqID
 	juce::String componentID = button->getComponentID();
@@ -474,7 +486,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 			bool direction = true;
 			bool reverse = reverseButtons.at(seqID)->getToggleState();
 			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
-			bool dottedNotes = dottedButtons.at(seqID)->getToggleState(); 
+			bool dottedNotes = dottedButtons.at(seqID)->getToggleState();
 			bool triplets = tripletsButtons.at(seqID)->getToggleState();
 
 
@@ -487,10 +499,10 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 	}
 	else if (componentIDWithoutID == "REVERSE_BUTTON") {
 		if (button->getToggleState() == true) {
-			
+
 			// deseleccionamos el pingPongButton
 			pingPongButtons.at(seqID)->setToggleState(false, true);
-			
+
 			// reverse the direction of the rythm
 			button->setButtonText("Reverse\nOn");
 			audioProcessor.setReverseDirection(seqID, true);
@@ -503,10 +515,10 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 	}
 	else if (componentIDWithoutID == "PING_PONG_BUTTON") {
 		if (button->getToggleState() == true) {
-			
+
 			// deseleccionamos el reverseButton
 			reverseButtons.at(seqID)->setToggleState(false, true);
-			
+
 			button->setButtonText("Ping Pong\nOn");
 			audioProcessor.setNewPingPong(seqID, true);
 		}
@@ -530,7 +542,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 			audioProcessor.setDottedNotes(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
 		}
 		else {
-		
+
 			button->setButtonText("Dotted\nOff");
 			audioProcessor.setDottedNotes(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
 
@@ -556,6 +568,12 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 	}
 	else if (componentIDWithoutID == "LOAD_PRESET_BUTTON") {
 		audioProcessor.loadPreset();
+	}
+	else if (componentIDWithoutID == "SHIET_BUTTON") {
+		if (button->getToggleState() == true)
+			button->setButtonText("Shiet\nOn");
+		else 
+			button->setButtonText("Shiet\nOff");
 	}
 }
 

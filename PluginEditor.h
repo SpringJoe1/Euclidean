@@ -65,6 +65,9 @@ private:
     juce::TextButton* savePresetButton;
     juce::TextButton* loadPresetButton;
 
+    // TODO -- ELIMINAR
+    map <int, juce::TextButton*> shietButtons;
+
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
     map<int, juce::TextButton*> pingPongButtons;
@@ -96,6 +99,8 @@ private:
     map<int, unique_ptr<ButtonAttachment>> pingPongButtonAttachments;
     map<int, unique_ptr<ButtonAttachment>> tripletsButtonAttachments;
     map<int, unique_ptr<ButtonAttachment>> dottedButtonAttachments;
+
+    map<int, unique_ptr<ButtonAttachment>> shietButtonAttachments;
 
     map<int, unique_ptr<ComboBoxAttachment>> noteNumberComboBoxAttachments;
     map<int, unique_ptr<ComboBoxAttachment>> stepDurationComboBoxAttachments;

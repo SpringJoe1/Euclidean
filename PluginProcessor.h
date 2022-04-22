@@ -11,7 +11,7 @@
 #define NUM_TOTAL_ETAPAS 4
 #define CONST_DURATION_TIME_CONV 1000
 
-
+#include <iostream>
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath> 
@@ -21,7 +21,6 @@
 #include <mutex>
 
 using namespace std;
-
 
 //==============================================================================
 /**

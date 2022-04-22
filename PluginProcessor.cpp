@@ -109,6 +109,8 @@ EuclideanSequencerAudioProcessor::EuclideanSequencerAudioProcessor()
 
 EuclideanSequencerAudioProcessor::~EuclideanSequencerAudioProcessor()
 {
+    euclideanRhythms.clear();
+    notesOn.clear();
 }
 
 //==============================================================================
@@ -260,7 +262,7 @@ void EuclideanSequencerAudioProcessor::getStateInformation(juce::MemoryBlock& de
     //auto state = apvts.copyState();
     //unique_ptr<juce::XmlElement> xml(state.createXml());
     //copyXmlToBinary(*xml, destData);
-
+    return;
 
 }
 
@@ -276,7 +278,7 @@ void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int
     //        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
     //
  
-
+    return;
 
 }
 
@@ -322,6 +324,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout EuclideanSequencerAudioProce
         paramsVector.push_back(make_unique<juce::AudioParameterChoice>("STEP_DURATION_COMBOBOX" + to_string(i), "Step duration " + to_string(i),
             juce::StringArray("1", "1/2", "1/4","1/8", "1/16", "1/32", "1/64"), 2));
     }
+
+    paramsVector.push_back(make_unique<juce::AudioParameterBool>("SHIET_BUTTON0", "Shiet Button 0", false));
+
 
     // Return the vector
     return { paramsVector.begin(), paramsVector.end() };
@@ -424,39 +429,109 @@ map<int, EuclideanRhythm*> EuclideanSequencerAudioProcessor::getEuclideanRhythms
 }
 
 void EuclideanSequencerAudioProcessor::savePreset() {
-    
+
+    // accedemos al directorio "\Euclidean Sequencer\Presets\" de "Documents"
+    // del usuario y si no existeo lo creamos
+
+    juce::File dir(juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDocumentsDirectory).getFullPathName() +
+        "\\Euclidean Sequencer\\Presets\\");
+
+    if (!dir.isDirectory()) {
+        DBG("Directory " << dir.getFullPathName() << " does not exist.");
+        if (dir.createDirectory())
+            DBG("Directory " << dir.getFullPathName() << " created successfully.");
+        else {
+            DBG("Error while creating directory " << dir.getFullPathName());
+            return;
+        }
+    }
+
+    // creamos el file donde guardaremos el state
+    // TODO -- cambiar a personalizable
+    juce::String fileName = "preset1.xml";
+    juce::String filePath = dir.getFullPathName() + "\\" + fileName;
+    juce::File file(filePath);
+
     // guardamos en state el valor del apvts
     auto state = apvts.copyState();
     // creamos un objeto XmlElement con ese estado
     unique_ptr<juce::XmlElement> xml(state.createXml());
-    
-    //// TODO -- cambiar a personalizable
-    // recogemos el nombre del file que deseamos
-    juce::String fileName = "\\preset1.xml";
-    juce::String filePath = "C:\\UCM\\EuclideanSequencer\\Presets" + fileName;
-    juce::File file (filePath);
 
     // guardamos el file con el preset 
     xml->writeTo(file, juce::XmlElement::TextFormat());
-   
+       
 }
 
 void EuclideanSequencerAudioProcessor::loadPreset() {
-   
-    // leer el file que queremos
-    // ---
 
 
-    ///////////////////////// TODO
-    // convertir 
-    unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    juce::String fileName = "preset1.xml";
+
+    juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDocumentsDirectory).getFullPathName() +
+        "\\Euclidean Sequencer\\Presets\\" +
+        fileName;
+
+    juce::File file(filePath);
+
+    if (file.existsAsFile()) {
+        
+        DBG("Correct file name: " << fileName);
+        
+        juce::XmlDocument xmlDoc(file);
+        unique_ptr<juce::XmlElement> xmlState(xmlDoc.getDocumentElement());
 
 
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(apvts.state.getType()))
-            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+        if (xmlState.get() != nullptr)
+            if (xmlState->hasTagName(apvts.state.getType()))
+                apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+
+    }
+    else
+        DBG("Incorrect file name: " << fileName);
+
+
 
 }
+
+
+//void VstPluginWindow::loadPreset()
+//{
+//    File lastPresetDirectory = File(plugin->getValue(PROP_PLUGPRESETDIR, String::empty));
+//    if (!lastPresetDirectory.exists())
+//        lastPresetDirectory = Config::getInstance()->lastPresetDirectory;
+//
+//    FileChooser myChooser(T("Load a preset file..."),
+//        lastPresetDirectory,
+//        JOST_PRESET_WILDCARD, JOST_USE_NATIVE_FILE_CHOOSER);
+//
+//    if (myChooser.browseForFileToOpen())
+//    {
+//        File fileToLoad = myChooser.getResult();
+//
+//        if (fileToLoad.existsAsFile())
+//        {
+//            XmlDocument xmlDoc(fileToLoad.loadFileAsString());
+//            XmlElement* xml = xmlDoc.getDocumentElement();
+//
+//            if (xml == 0 || !xml->hasTagName(JOST_PRESET_PRESETTAG))
+//            {
+//                String errString = xmlDoc.getLastParseError();
+//                printf("Error parsing preset: %s \n", (const char*)errString);
+//            }
+//            else
+//            {
+//                plugin->loadPresetFromXml(xml);
+//
+//                updateParameters();
+//                repaint();
+//
+//                Config::getInstance()->addRecentPreset(fileToLoad);
+//
+//                plugin->setValue(PROP_PLUGPRESETDIR, fileToLoad.getParentDirectory().getFullPathName());
+//            }
+//        }
+//    }
+//}
 
 
 //==============================================================================
