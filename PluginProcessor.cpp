@@ -428,7 +428,7 @@ map<int, EuclideanRhythm*> EuclideanSequencerAudioProcessor::getEuclideanRhythms
     return euclideanRhythms;
 }
 
-void EuclideanSequencerAudioProcessor::savePreset() {
+void EuclideanSequencerAudioProcessor::savePreset(int selection) {
 
     // accedemos al directorio "\Euclidean Sequencer\Presets\" de "Documents"
     // del usuario y si no existeo lo creamos
@@ -447,8 +447,7 @@ void EuclideanSequencerAudioProcessor::savePreset() {
     }
 
     // creamos el file donde guardaremos el state
-    // TODO -- cambiar a personalizable
-    juce::String fileName = "preset1.xml";
+    juce::String fileName = "preset" + to_string(selection) + ".xml";
     juce::String filePath = dir.getFullPathName() + "\\" + fileName;
     juce::File file(filePath);
 
@@ -458,14 +457,31 @@ void EuclideanSequencerAudioProcessor::savePreset() {
     unique_ptr<juce::XmlElement> xml(state.createXml());
 
     // guardamos el file con el preset 
-    xml->writeTo(file, juce::XmlElement::TextFormat());
+    if (xml->writeTo(file, juce::XmlElement::TextFormat())) {
+        // mostramos ventana de exito
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::NoIcon,
+            "Preset Saved",
+            "Preset " + fileName + " saved successfully.",
+            "Ok",
+            nullptr,
+            nullptr);
+    }
+    else {
+        // mostramos ventana de error
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+            "Save Results",
+            "Error while saving preset: " + fileName,
+            "Ok",
+            nullptr,
+            nullptr);
+    }
        
 }
 
-void EuclideanSequencerAudioProcessor::loadPreset() {
+void EuclideanSequencerAudioProcessor::loadPreset(int selection) {
 
 
-    juce::String fileName = "preset1.xml";
+    juce::String fileName = "preset" + to_string(selection) + ".xml";
 
     juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDocumentsDirectory).getFullPathName() +
         "\\Euclidean Sequencer\\Presets\\" +
@@ -481,58 +497,41 @@ void EuclideanSequencerAudioProcessor::loadPreset() {
         unique_ptr<juce::XmlElement> xmlState(xmlDoc.getDocumentElement());
 
 
-        if (xmlState.get() != nullptr)
-            if (xmlState->hasTagName(apvts.state.getType()))
+        if (xmlState.get() != nullptr) {
+            if (xmlState->hasTagName(apvts.state.getType())) {
                 apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
-
+                // mostramos ventana de exito
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::NoIcon,
+                    "Load Results",
+                    "Preset " + fileName + " loaded successfully.",
+                    "Ok",
+                    nullptr,
+                    nullptr);
+            }
+        }
+        else
+            // mostramos ventana de error
+            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                "Load Results",
+                "Error while loading preset: " + fileName,
+                "Ok",
+                nullptr,
+                nullptr);
     }
-    else
+    else {
         DBG("Incorrect file name: " << fileName);
+        // mostramos ventana de error
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+            "Load Results",
+            "Preset " + fileName + " not found.",
+            "Ok",
+            nullptr,
+            nullptr);
+    }
 
 
 
 }
-
-
-//void VstPluginWindow::loadPreset()
-//{
-//    File lastPresetDirectory = File(plugin->getValue(PROP_PLUGPRESETDIR, String::empty));
-//    if (!lastPresetDirectory.exists())
-//        lastPresetDirectory = Config::getInstance()->lastPresetDirectory;
-//
-//    FileChooser myChooser(T("Load a preset file..."),
-//        lastPresetDirectory,
-//        JOST_PRESET_WILDCARD, JOST_USE_NATIVE_FILE_CHOOSER);
-//
-//    if (myChooser.browseForFileToOpen())
-//    {
-//        File fileToLoad = myChooser.getResult();
-//
-//        if (fileToLoad.existsAsFile())
-//        {
-//            XmlDocument xmlDoc(fileToLoad.loadFileAsString());
-//            XmlElement* xml = xmlDoc.getDocumentElement();
-//
-//            if (xml == 0 || !xml->hasTagName(JOST_PRESET_PRESETTAG))
-//            {
-//                String errString = xmlDoc.getLastParseError();
-//                printf("Error parsing preset: %s \n", (const char*)errString);
-//            }
-//            else
-//            {
-//                plugin->loadPresetFromXml(xml);
-//
-//                updateParameters();
-//                repaint();
-//
-//                Config::getInstance()->addRecentPreset(fileToLoad);
-//
-//                plugin->setValue(PROP_PLUGPRESETDIR, fileToLoad.getParentDirectory().getFullPathName());
-//            }
-//        }
-//    }
-//}
-
 
 //==============================================================================
 

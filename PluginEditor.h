@@ -8,6 +8,7 @@
 
 #pragma once
 
+#define DEFAULT_PRESET_COMBOBOX 99
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
@@ -45,6 +46,7 @@ private:
     void setSliderParams(juce::Slider& slider);
     void setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id);
     void setDurationComboBoxParams(juce::ComboBox& comboBox, string id);
+    void setPresetComboBoxParams(juce::ComboBox& comboBox, string id);
 
     void disableComponents(int id);
     void enableComponents(int id);
@@ -64,6 +66,7 @@ private:
     juce::TextButton* syncButton;
     juce::TextButton* savePresetButton;
     juce::TextButton* loadPresetButton;
+    juce::ComboBox* presetComboBox;
 
     // TODO -- ELIMINAR
     map <int, juce::TextButton*> shietButtons;

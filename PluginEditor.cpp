@@ -121,7 +121,9 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	loadPresetButton->setButtonText("Load Preset");
 	setTextButtonParams(*loadPresetButton, "LOAD_PRESET_BUTTON4");
 
-
+	// preset combobox
+	presetComboBox = new juce::ComboBox{ "presetComboBox" };
+	setPresetComboBoxParams(*presetComboBox, "PRESET_COMBOBOX4");
 
 	// shiet button
 	shietButtons.insert({ 0, new juce::TextButton{"shietButton"} });
@@ -199,8 +201,6 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	// donde empieza el primer componente eje Y
 	auto componentStartY = 0;
 
-	//DBG("componentWidth " << componentWidth <<
-	//	" componentHeight " << componentHeight);
 
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 		
@@ -225,7 +225,8 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	syncButton->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
 	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
 	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
-	shietButtons.at(0)->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
+	presetComboBox->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
+	shietButtons.at(0)->setBounds(presetComboBox->getRight() + padding, componentStartY, componentWidth, componentHeight);
 
 }
 
@@ -379,6 +380,26 @@ void EuclideanSequencerAudioProcessorEditor::setDurationComboBoxParams(juce::Com
 	comboBox.addListener(this);
 }
 
+void EuclideanSequencerAudioProcessorEditor::setPresetComboBoxParams(juce::ComboBox& comboBox, string id) {
+	
+	comboBox.setComponentID(id);
+
+	comboBox.addItem(" - ", DEFAULT_PRESET_COMBOBOX);
+	comboBox.addItem("Preset 1", 1);
+	comboBox.addItem("Preset 2", 2);
+	comboBox.addItem("Preset 3", 3);
+	comboBox.addItem("Preset 4", 4);
+	comboBox.addItem("Preset 5", 5);
+	comboBox.addItem("Preset 6", 6);
+	comboBox.addItem("Preset 7", 7);
+	comboBox.addItem("Preset 8", 8);
+
+	comboBox.setSelectedId(DEFAULT_PRESET_COMBOBOX);
+	comboBox.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(comboBox);
+	comboBox.addListener(this);
+}
+
 void EuclideanSequencerAudioProcessorEditor::disableComponents(int id) {
 	
 	stepsSliders.at(id)->setEnabled(false);
@@ -441,7 +462,7 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 	if (componentIDWithoutID == "NOTE_NUMBER_COMBOBOX")
 		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId(), seqID);
 	// Si es el caso del combobox de STEP_DURATION_COMBOBOX
-	if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
+	else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
 		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 }
 
@@ -564,10 +585,28 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 		}
 	}
 	else if (componentIDWithoutID == "SAVE_PRESET_BUTTON") {
-		audioProcessor.savePreset();
+		if (presetComboBox->getSelectedId() == DEFAULT_PRESET_COMBOBOX) {
+			juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+				"Select Preset",
+				"Select a preset in the combobox where you want to save it.",
+				"Ok",
+				nullptr,
+				nullptr);
+		}
+		else
+			audioProcessor.savePreset(presetComboBox->getSelectedId());
 	}
 	else if (componentIDWithoutID == "LOAD_PRESET_BUTTON") {
-		audioProcessor.loadPreset();
+		if (presetComboBox->getSelectedId() == DEFAULT_PRESET_COMBOBOX) {
+			juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+				"Select Preset",
+				"Select a preset in the combobox to load it.",
+				"Ok",
+				nullptr,
+				nullptr);
+		}
+		else
+			audioProcessor.loadPreset(presetComboBox->getSelectedId());
 	}
 	else if (componentIDWithoutID == "SHIET_BUTTON") {
 		if (button->getToggleState() == true)
