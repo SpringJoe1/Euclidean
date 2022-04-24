@@ -262,8 +262,6 @@ void EuclideanSequencerAudioProcessor::getStateInformation(juce::MemoryBlock& de
     //auto state = apvts.copyState();
     //unique_ptr<juce::XmlElement> xml(state.createXml());
     //copyXmlToBinary(*xml, destData);
-    return;
-
 }
 
 void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
@@ -278,8 +276,6 @@ void EuclideanSequencerAudioProcessor::setStateInformation(const void* data, int
     //        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
     //
  
-    return;
-
 }
 
 //==============================================================================

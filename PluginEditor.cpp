@@ -125,14 +125,6 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	presetComboBox = new juce::ComboBox{ "presetComboBox" };
 	setPresetComboBoxParams(*presetComboBox, "PRESET_COMBOBOX4");
 
-	// shiet button
-	shietButtons.insert({ 0, new juce::TextButton{"shietButton"} });
-	shietButtons.at(0)->setButtonText("Shiet\nOff");
-	setTextButtonParams(*shietButtons.at(0), "SHIET_BUTTON" + to_string(0));
-
-	shietButtonAttachments.insert({ 0, nullptr });
-	shietButtonAttachments.at(0).reset(new ButtonAttachment(audioProcessor.apvts, "SHIET_BUTTON" + to_string(0), (*shietButtons.at(0))));
-
 	
 	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
@@ -142,14 +134,8 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 
 EuclideanSequencerAudioProcessorEditor::~EuclideanSequencerAudioProcessorEditor()
 {
-	//stopTimer();
 }
 
-//==============================================================================
-
-//void EuclideanSequencerAudioProcessorEditor::timerCallback() {
-//	repaint();
-//}
 
 //==============================================================================
 
@@ -226,7 +212,6 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
 	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
 	presetComboBox->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
-	shietButtons.at(0)->setBounds(presetComboBox->getRight() + padding, componentStartY, componentWidth, componentHeight);
 
 }
 
@@ -484,7 +469,8 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 
 	if (componentIDWithoutID == "ON_OFF_BUTTON") {
-		if (button->getToggleState() == false) {
+
+		if (button->getToggleState() == false && audioProcessor.getEuclideanRhythms().count(seqID)) {
 			// change button text
 			button->setButtonText("Off");
 			// delete rythm
@@ -493,6 +479,10 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 			disableComponents(seqID);
 		}
 		else {
+
+			if (audioProcessor.getEuclideanRhythms().count(seqID))
+				return;
+
 			// change button text
 			button->setButtonText("On");
 
@@ -608,12 +598,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 		else
 			audioProcessor.loadPreset(presetComboBox->getSelectedId());
 	}
-	else if (componentIDWithoutID == "SHIET_BUTTON") {
-		if (button->getToggleState() == true)
-			button->setButtonText("Shiet\nOn");
-		else 
-			button->setButtonText("Shiet\nOff");
-	}
+
 }
 
 //==============================================================================
