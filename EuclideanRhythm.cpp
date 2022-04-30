@@ -49,12 +49,15 @@ EuclideanRhythm::EuclideanRhythm(float rate, int bpmParam, int steps, int events
     this->_noteNumber = noteNumberParam;   // C4
     this->numSamplesPerBar = 0;
     this->currentSampleInBar = 0;
+    //por default usamos el canal midi 1
+    this->_channel = 1;
     
     set_euclideanRhythm(steps, events);
 }
 
 EuclideanRhythm::~EuclideanRhythm()
 {
+    //cerrar todas las notas que estne sonando
 }
 
 void EuclideanRhythm::paint (juce::Graphics& g)
@@ -124,6 +127,10 @@ bool EuclideanRhythm::get_dottedNotes() {
 
 bool EuclideanRhythm::get_triplets() {
     return this->_triplets;
+}
+
+int EuclideanRhythm::get_channel() {
+    return this->_channel;
 }
 
 juce::String EuclideanRhythm::getList() {
@@ -206,6 +213,10 @@ void EuclideanRhythm::set_dottedNotes(bool value) {
 
 void EuclideanRhythm::set_triplets(bool value) {
     this->_triplets = value;
+}
+
+void EuclideanRhythm::set_channel(int channel) {
+    this->_channel = channel;
 }
 
 // Atributos auxiliares para realizar el processBlock() 

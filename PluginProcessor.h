@@ -81,6 +81,7 @@ public:
 
     void setNewNoteNumber(int value, int seqID);
     void setNewStepFigure(float duration, int seqID);
+    void setNewChannel(int value, int seqID);
     void createRythm(int id, int steps, int events, int rotation, int velocity, int gate,
         int noteNumber, float figureStep, bool direction, bool reverse, bool pingPong,
         bool dottedNotesParam, bool tripletsParam);

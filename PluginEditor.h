@@ -47,6 +47,7 @@ private:
     void setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id);
     void setDurationComboBoxParams(juce::ComboBox& comboBox, string id);
     void setPresetComboBoxParams(juce::ComboBox& comboBox, string id);
+    void setChannelComboBoxParams(juce::ComboBox& comboBox, string id);
 
     void disableComponents(int id);
     void enableComponents(int id);
@@ -82,6 +83,7 @@ private:
 
     map<int, juce::ComboBox*> noteNumberComboBoxes;
     map<int, juce::ComboBox*> stepDurationComboBoxes;
+    map<int, juce::ComboBox*> channelComboBoxes;
 
     // alias para que sea mas legible
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -104,7 +106,7 @@ private:
 
     map<int, unique_ptr<ComboBoxAttachment>> noteNumberComboBoxAttachments;
     map<int, unique_ptr<ComboBoxAttachment>> stepDurationComboBoxAttachments;
-
+    map<int, unique_ptr<ComboBoxAttachment>> channelComboBoxAttachments;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EuclideanSequencerAudioProcessorEditor)
 };

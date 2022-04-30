@@ -67,6 +67,13 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		stepDurationComboBoxAttachments.insert({ i, nullptr });
 		stepDurationComboBoxAttachments.at(i).reset(new ComboBoxAttachment(audioProcessor.apvts, "STEP_DURATION_COMBOBOX" + to_string(i), (*stepDurationComboBoxes.at(i))));
 
+		//channel combobox
+		channelComboBoxes.insert({ i, new juce::ComboBox() });
+		setChannelComboBoxParams(*channelComboBoxes.at(i), "CHANNEL_COMBOBOX" + to_string(i));
+
+		channelComboBoxAttachments.insert({ i, nullptr });
+		channelComboBoxAttachments.at(i).reset(new ComboBoxAttachment(audioProcessor.apvts, "CHANNEL_COMBOBOX" + to_string(i), (*channelComboBoxes.at(i))));
+
 		// reverse direction button
 		reverseButtons.insert({ i, new juce::TextButton{"reverseButton"} });
 		reverseButtons.at(i)->setButtonText("Reverse\nOff");
@@ -191,7 +198,8 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 		
 		onOffButtons.at(i)->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
-		stepsSliders.at(i)->setBounds(onOffButtons.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		channelComboBoxes.at(i)->setBounds(onOffButtons.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
+		stepsSliders.at(i)->setBounds(channelComboBoxes.at(i)->getRight(), componentStartY, componentWidth, componentHeight);
 		eventsSliders.at(i)->setBounds(stepsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		rotationSliders.at(i)->setBounds(eventsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		velocitySliders.at(i)->setBounds(rotationSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
@@ -365,6 +373,38 @@ void EuclideanSequencerAudioProcessorEditor::setDurationComboBoxParams(juce::Com
 	comboBox.addListener(this);
 }
 
+void EuclideanSequencerAudioProcessorEditor::setChannelComboBoxParams(juce::ComboBox& comboBox, string id) {
+
+	comboBox.setComponentID(id);
+
+	// we need the IDs so as we can not store floats,
+	// we add the number x1000 so it is an int, and then we will divide again
+
+	// canales midi
+	comboBox.addItem("1", 1);
+	comboBox.addItem("2", 2);
+	comboBox.addItem("3", 3);
+	comboBox.addItem("4", 4);
+	comboBox.addItem("5", 5);
+	comboBox.addItem("6", 6);
+	comboBox.addItem("7", 7);
+	comboBox.addItem("8", 8);
+	comboBox.addItem("9", 9);
+	comboBox.addItem("10", 10);
+	comboBox.addItem("11", 11);
+	comboBox.addItem("12", 12);
+	comboBox.addItem("13", 13);
+	comboBox.addItem("14", 14);
+	comboBox.addItem("15", 15);
+	comboBox.addItem("16", 16);
+
+	comboBox.setSelectedId(1); 
+	comboBox.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(comboBox);
+	comboBox.setEnabled(false);
+	comboBox.addListener(this);
+}
+
 void EuclideanSequencerAudioProcessorEditor::setPresetComboBoxParams(juce::ComboBox& comboBox, string id) {
 	
 	comboBox.setComponentID(id);
@@ -394,6 +434,7 @@ void EuclideanSequencerAudioProcessorEditor::disableComponents(int id) {
 	gateSliders.at(id)->setEnabled(false);
 	noteNumberComboBoxes.at(id)->setEnabled(false);
 	stepDurationComboBoxes.at(id)->setEnabled(false);
+	channelComboBoxes.at(id)->setEnabled(false);
 	reverseButtons.at(id)->setEnabled(false);
 	pingPongButtons.at(id)->setEnabled(false);
 	dottedButtons.at(id)->setEnabled(false);
@@ -409,6 +450,7 @@ void EuclideanSequencerAudioProcessorEditor::enableComponents(int id) {
 	gateSliders.at(id)->setEnabled(true);
 	noteNumberComboBoxes.at(id)->setEnabled(true);
 	stepDurationComboBoxes.at(id)->setEnabled(true);
+	channelComboBoxes.at(id)->setEnabled(true);
 	reverseButtons.at(id)->setEnabled(true);
 	pingPongButtons.at(id)->setEnabled(true);
 	dottedButtons.at(id)->setEnabled(true);
@@ -449,6 +491,8 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 	// Si es el caso del combobox de STEP_DURATION_COMBOBOX
 	else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
 		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
+	else if (componentIDWithoutID == "CHANNEL_COMBOBOX")
+		audioProcessor.setNewChannel((float)comboBoxThatHasChanged->getSelectedId(), seqID);
 }
 
 void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button) {

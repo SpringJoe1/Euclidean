@@ -11,21 +11,6 @@
 
 //==============================================================================
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 juce::String getMidiMessageDescription(const juce::MidiMessage& m)
 {
     if (m.isNoteOn())           return "Note on " + juce::MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3);
@@ -69,28 +54,6 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
 
     return(timecode + "  -  " + getMidiMessageDescription(message));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 EuclideanSequencerAudioProcessor::EuclideanSequencerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -233,11 +196,6 @@ void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& bu
         processSequencer(midiMessages, itr->second, itr->first);
     }
 
-    // evitamos que queden notas residuales
-    if (euclideanRhythms.empty()) {
-        auto m = juce::MidiMessage::allNotesOff(midiChannel);
-        midiMessages.addEvent(m,0);
-    }
     //processSequencer(midiMessages, euclideanRhythms.at(0), 0);
 }
 
@@ -319,6 +277,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout EuclideanSequencerAudioProce
                 "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6", "A6", "A#6", "B6"), 48));
         paramsVector.push_back(make_unique<juce::AudioParameterChoice>("STEP_DURATION_COMBOBOX" + to_string(i), "Step duration " + to_string(i),
             juce::StringArray("1", "1/2", "1/4","1/8", "1/16", "1/32", "1/64"), 2));
+        paramsVector.push_back(make_unique<juce::AudioParameterChoice>("CHANNEL_COMBOBOX" + to_string(i), "Channel " + to_string(i),
+            juce::StringArray("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"), 0));
     }
 
     paramsVector.push_back(make_unique<juce::AudioParameterBool>("SHIET_BUTTON0", "Shiet Button 0", false));
@@ -337,6 +297,11 @@ void EuclideanSequencerAudioProcessor::setNewNoteNumber(int value, int seqID) {
 void EuclideanSequencerAudioProcessor::setNewStepFigure(float duration, int seqID) {
     if (euclideanRhythms.count(seqID))
         euclideanRhythms.at(seqID)->set_figureStep(duration);
+}
+
+void EuclideanSequencerAudioProcessor::setNewChannel(int value, int seqID) {
+    if (euclideanRhythms.count(seqID))
+        euclideanRhythms.at(seqID)->set_channel(value);
 }
 
 void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events, int rotation,
@@ -371,6 +336,7 @@ void EuclideanSequencerAudioProcessor::setReverseDirection(int seqID, bool rever
     }
 }
 
+//Igual hacer que pinponee en el beat en el que se activa
 void EuclideanSequencerAudioProcessor::setNewPingPong(int id, bool value) {
     if (euclideanRhythms.count(id)) {
         euclideanRhythms.at(id)->set_pingPong(value);
@@ -395,7 +361,7 @@ void EuclideanSequencerAudioProcessor::synchronizeAll() {
 
 void EuclideanSequencerAudioProcessor::setDottedNotes(int seqID, bool value, float figureStep) {
     if (euclideanRhythms.count(seqID)) {
-        euclideanRhythms.at(seqID)->set_triplets(value);
+        euclideanRhythms.at(seqID)->set_dottedNotes(value);
         float newDuration;
         if (value)
             newDuration = figureStep * (3.0f / 2.0f);
@@ -408,7 +374,7 @@ void EuclideanSequencerAudioProcessor::setDottedNotes(int seqID, bool value, flo
 
 void EuclideanSequencerAudioProcessor::setTriplets(int seqID, bool value, float figureStep) {
     if (euclideanRhythms.count(seqID)) {
-        euclideanRhythms.at(seqID)->set_dottedNotes(value);
+        euclideanRhythms.at(seqID)->set_triplets(value);
         float newDuration;
         if (value)
             newDuration = figureStep * (2.0f / 3.0f);
@@ -591,6 +557,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
 
     my_mutex[ID].lock();
     euclideanRhythm->set_euclideanRhythm(steps, events);
+    int channel = euclideanRhythm->get_channel();
     my_mutex[ID].unlock();
 
 
@@ -621,7 +588,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
     for (auto itr = euclideanRhythm->notesDurationMap.begin(); itr != euclideanRhythm->notesDurationMap.end(); ++itr) {
         if (itr->second + numSamples >= euclideanRhythm->getNoteDuration()) {
             auto offset = juce::jmax(0, juce::jmin((int)(euclideanRhythm->getNoteDuration() - itr->second), numSamples - 1));
-            auto message = juce::MidiMessage::noteOff(midiChannel, itr->first);
+            auto message = juce::MidiMessage::noteOff(euclideanRhythm->notesChannelMap[itr->first], itr->first);
 
 
             DBG(" seqID: " << ID << " " <<
@@ -633,7 +600,8 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
                 " on " << euclideanRhythm->getList() <<
                 " direction " << (int)euclideanRhythm->get_direction() <<
                 " currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
-                " of " << euclideanRhythm->getNumSamplesPerBar());
+                " of " << euclideanRhythm->getNumSamplesPerBar() <<
+                " in midi channel " << euclideanRhythm->get_channel());
 
             // mapa de notas global
             notesOn[itr->first]--;
@@ -651,6 +619,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
     // vector auxiliar para borrar las notas del mapa que han dejado de sonar
     for (auto itr = euclideanRhythm->notesToDeleteFromMap.begin(); itr != euclideanRhythm->notesToDeleteFromMap.end(); ++itr) {
         euclideanRhythm->notesDurationMap.erase(*itr);
+        euclideanRhythm->notesChannelMap.erase(*itr);
     }
     euclideanRhythm->notesToDeleteFromMap.clear();
 
@@ -666,7 +635,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
             int velocity = *apvts.getRawParameterValue("VELOCITY" + to_string(ID));
             euclideanRhythm->set_velocity(velocity);
 
-            auto message = juce::MidiMessage::noteOn(midiChannel, note, (juce::uint8)velocity);
+            auto message = juce::MidiMessage::noteOn(channel, note, (juce::uint8)velocity);
             DBG(" seqID: " << ID << " " <<
                 getMidiMessageDescription(message) << " noteNumber " << note <<
                 " figureStep " << euclideanRhythm->get_figureStep() <<
@@ -683,6 +652,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
 
             notesOn[note]++;
             euclideanRhythm->notesDurationMap.insert({ note, numSamples - offset });
+            euclideanRhythm->notesChannelMap.insert({ note, channel });
         }
     }
 

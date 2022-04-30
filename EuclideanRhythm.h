@@ -56,6 +56,7 @@ public:
     bool get_pingPong();
     bool get_dottedNotes();
     bool get_triplets();
+    int get_channel();
     vector<int> get_euclideanRhythm();
     juce::String getList();
 
@@ -73,6 +74,7 @@ public:
     void set_pingPong(bool value);
     void set_dottedNotes(bool value);
     void set_triplets(bool value);
+    void set_channel(int newChannel);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
@@ -114,6 +116,8 @@ public:
     //==============================================================================
     // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
     map<int, int> notesDurationMap;
+    //map con el current noteNumber y num de canal de midi al que se mandó
+    map<int, int> notesChannelMap;
     vector<int> notesToDeleteFromMap;
 
 private:
@@ -128,6 +132,7 @@ private:
     int _rotation;
     int _velocity;
     int _gate;
+    int _channel;
     // valor de la nota midi (entre C0 y B6 que son la 24 y 106)
     int _noteNumber;
     // duracion de los steps (blanca, corchea, etc)
