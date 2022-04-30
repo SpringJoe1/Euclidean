@@ -196,6 +196,15 @@ void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& bu
         processSequencer(midiMessages, itr->second, itr->first);
     }
 
+    //TODO ver que pasa con midichannel
+    //evitamos que queden notas residuales
+    //posibles soluciones:
+    //1) metemos el midiBuffer como campo a cada ritmo y en el destructor mandar noteoff de todo lo que hay
+    //2) cambiar on/off: see lee el valor del boton en process block en vez de con un listener y ahi se hace notes off de todo
+    if (euclideanRhythms.empty()) {
+        auto m = juce::MidiMessage::allNotesOff(midiChannel);
+        midiMessages.addEvent(m,0);
+    }
     //processSequencer(midiMessages, euclideanRhythms.at(0), 0);
 }
 
@@ -317,9 +326,12 @@ void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events
 
 void EuclideanSequencerAudioProcessor::deleteRythm(int id) {
     
-    for (auto itr = euclideanRhythms.at(id)->notesDurationMap.begin(); itr != euclideanRhythms.at(id)->notesDurationMap.end(); ++itr)
+    for (auto itr = euclideanRhythms.at(id)->notesDurationMap.begin(); itr != euclideanRhythms.at(id)->notesDurationMap.end(); ++itr) {
         notesOn[itr->first]--;
+    }
+        
     
+    euclideanRhythms.at(id)->notesDurationMap.clear();
     euclideanRhythms.at(id)->notesDurationMap.clear();
     euclideanRhythms.at(id)->notesToDeleteFromMap.clear();
     euclideanRhythms.erase(id);
