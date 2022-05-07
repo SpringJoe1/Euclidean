@@ -19,6 +19,7 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 
+
 		// on-off button builder
 		onOffButtons.insert({ i, new juce::TextButton{"onOffButton"} });
 		onOffButtons.at(i)->setButtonText("Off");
@@ -54,14 +55,15 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		gateSliderAttachments.at(i).reset(new SliderAttachment(audioProcessor.apvts, "GATE" + to_string(i), (*gateSliders.at(i))));
 
 		// noteNomber combobox
-		noteNumberComboBoxes.insert({ i, new juce::ComboBox() });
+		noteNumberComboBoxes.insert({ i, new juce::ComboBox()});
 		setNoteNumberComboBoxParams(*noteNumberComboBoxes.at(i), "NOTE_NUMBER_COMBOBOX" + to_string(i));
 
 		noteNumberComboBoxAttachments.insert({ i, nullptr });
 		noteNumberComboBoxAttachments.at(i).reset(new ComboBoxAttachment(audioProcessor.apvts, "NOTE_NUMBER_COMBOBOX" + to_string(i), (*noteNumberComboBoxes.at(i))));
 
+
 		// stepDuration combobox
-		stepDurationComboBoxes.insert({ i, new juce::ComboBox() });
+		stepDurationComboBoxes.insert({ i, new juce::ComboBox("stepDurationCombobox")});
 		setDurationComboBoxParams(*stepDurationComboBoxes.at(i), "STEP_DURATION_COMBOBOX" + to_string(i));
 
 		stepDurationComboBoxAttachments.insert({ i, nullptr });
@@ -132,6 +134,14 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	presetComboBox = new juce::ComboBox{ "presetComboBox" };
 	setPresetComboBoxParams(*presetComboBox, "PRESET_COMBOBOX4");
 
+	// shiet button
+	shietButtons.insert({ 0, new juce::TextButton{"shietButton"} });
+	shietButtons.at(0)->setButtonText("Shiet\nOff");
+	setTextButtonParams(*shietButtons.at(0), "SHIET_BUTTON" + to_string(0));
+
+	shietButtonAttachments.insert({ 0, nullptr });
+	shietButtonAttachments.at(0).reset(new ButtonAttachment(audioProcessor.apvts, "SHIET_BUTTON" + to_string(0), (*shietButtons.at(0))));
+
 	
 	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
@@ -141,8 +151,14 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 
 EuclideanSequencerAudioProcessorEditor::~EuclideanSequencerAudioProcessorEditor()
 {
+	//stopTimer();
 }
 
+//==============================================================================
+
+//void EuclideanSequencerAudioProcessorEditor::timerCallback() {
+//	repaint();
+//}
 
 //==============================================================================
 
@@ -179,7 +195,7 @@ void EuclideanSequencerAudioProcessorEditor::paint(juce::Graphics& g)
 void EuclideanSequencerAudioProcessorEditor::resized()
 {
 
-	int numOfComponents = 10;
+	int numOfComponents = 11;
 
 	// bounds of the whole pluggin
 	const auto bounds = getLocalBounds();
@@ -199,7 +215,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 		
 		onOffButtons.at(i)->setBounds(componentStartX, componentStartY, componentWidth, componentHeight);
 		channelComboBoxes.at(i)->setBounds(onOffButtons.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
-		stepsSliders.at(i)->setBounds(channelComboBoxes.at(i)->getRight(), componentStartY, componentWidth, componentHeight);
+		stepsSliders.at(i)->setBounds(channelComboBoxes.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		eventsSliders.at(i)->setBounds(stepsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		rotationSliders.at(i)->setBounds(eventsSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
 		velocitySliders.at(i)->setBounds(rotationSliders.at(i)->getRight() + padding, componentStartY, componentWidth, componentHeight);
@@ -220,6 +236,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
 	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
 	presetComboBox->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
+	shietButtons.at(0)->setBounds(presetComboBox->getRight() + padding, componentStartY, componentWidth, componentHeight);
 
 }
 
@@ -227,7 +244,7 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 
 void EuclideanSequencerAudioProcessorEditor::setTextButtonParams(juce::TextButton& textButton, string id) {
 	
-	if(id != "SYNC_BUTTON4" && id != "SAVE_PRESET_BUTTON4" && id != "LOAD_PRESET_BUTTON4")
+	if (id != "SYNC_BUTTON4" && id != "SAVE_PRESET_BUTTON4" && id != "LOAD_PRESET_BUTTON4")
 		// en la UI el button se quedará pulsado
 		textButton.setClickingTogglesState(true);
 
@@ -373,6 +390,26 @@ void EuclideanSequencerAudioProcessorEditor::setDurationComboBoxParams(juce::Com
 	comboBox.addListener(this);
 }
 
+void EuclideanSequencerAudioProcessorEditor::setPresetComboBoxParams(juce::ComboBox& comboBox, string id) {
+	
+	comboBox.setComponentID(id);
+
+	comboBox.addItem(" - ", DEFAULT_PRESET_COMBOBOX);
+	comboBox.addItem("Preset 1", 1);
+	comboBox.addItem("Preset 2", 2);
+	comboBox.addItem("Preset 3", 3);
+	comboBox.addItem("Preset 4", 4);
+	comboBox.addItem("Preset 5", 5);
+	comboBox.addItem("Preset 6", 6);
+	comboBox.addItem("Preset 7", 7);
+	comboBox.addItem("Preset 8", 8);
+
+	comboBox.setSelectedId(DEFAULT_PRESET_COMBOBOX);
+	comboBox.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(comboBox);
+	comboBox.addListener(this);
+}
+
 void EuclideanSequencerAudioProcessorEditor::setChannelComboBoxParams(juce::ComboBox& comboBox, string id) {
 
 	comboBox.setComponentID(id);
@@ -398,30 +435,10 @@ void EuclideanSequencerAudioProcessorEditor::setChannelComboBoxParams(juce::Comb
 	comboBox.addItem("15", 15);
 	comboBox.addItem("16", 16);
 
-	comboBox.setSelectedId(1); 
+	comboBox.setSelectedId(1);
 	comboBox.setJustificationType(juce::Justification::centred);
 	addAndMakeVisible(comboBox);
 	comboBox.setEnabled(false);
-	comboBox.addListener(this);
-}
-
-void EuclideanSequencerAudioProcessorEditor::setPresetComboBoxParams(juce::ComboBox& comboBox, string id) {
-	
-	comboBox.setComponentID(id);
-
-	comboBox.addItem(" - ", DEFAULT_PRESET_COMBOBOX);
-	comboBox.addItem("Preset 1", 1);
-	comboBox.addItem("Preset 2", 2);
-	comboBox.addItem("Preset 3", 3);
-	comboBox.addItem("Preset 4", 4);
-	comboBox.addItem("Preset 5", 5);
-	comboBox.addItem("Preset 6", 6);
-	comboBox.addItem("Preset 7", 7);
-	comboBox.addItem("Preset 8", 8);
-
-	comboBox.setSelectedId(DEFAULT_PRESET_COMBOBOX);
-	comboBox.setJustificationType(juce::Justification::centred);
-	addAndMakeVisible(comboBox);
 	comboBox.addListener(this);
 }
 
@@ -481,7 +498,7 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 
 	// TODO -- necesario?
 
-	if (seqID < 0 || seqID >= NUM_TOTAL_ETAPAS){
+	if (!audioProcessor.getEuclideanRhythms().count(seqID)){
 		return;
 	}
 
@@ -489,14 +506,15 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 	if (componentIDWithoutID == "NOTE_NUMBER_COMBOBOX")
 		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId(), seqID);
 	// Si es el caso del combobox de STEP_DURATION_COMBOBOX
-	else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
-		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
+	//else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
+	//	audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 	else if (componentIDWithoutID == "CHANNEL_COMBOBOX")
 		audioProcessor.setNewChannel((float)comboBoxThatHasChanged->getSelectedId(), seqID);
+
 }
 
 void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button) {
-
+	
 	DBG("!!!! BUTTON !!!");
 	// string que almacena el ID del combobox + seqID
 	juce::String componentID = button->getComponentID();
@@ -511,114 +529,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 	int seqID = stoi(string(1, componentIDLast));
 	DBG("int componentIDLastInt " << componentIDLast);
 
-
-	if (componentIDWithoutID == "ON_OFF_BUTTON") {
-
-		if (button->getToggleState() == false && audioProcessor.getEuclideanRhythms().count(seqID)) {
-			// change button text
-			button->setButtonText("Off");
-			// delete rythm
-			audioProcessor.deleteRythm(seqID);
-			// disable those components
-			disableComponents(seqID);
-		}
-		else {
-
-			if (audioProcessor.getEuclideanRhythms().count(seqID))
-				return;
-
-			// change button text
-			button->setButtonText("On");
-
-			// create rythm
-			int steps = stepsSliders.at(seqID)->getValue();
-			int events = eventsSliders.at(seqID)->getValue();
-			int rotation = rotationSliders.at(seqID)->getValue();
-			int velocity = velocitySliders.at(seqID)->getValue();
-			int gate = gateSliders.at(seqID)->getValue();
-			int noteNumber = noteNumberComboBoxes.at(seqID)->getSelectedId();
-			float figureStep = stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV;
-			bool direction = true;
-			bool reverse = reverseButtons.at(seqID)->getToggleState();
-			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
-			bool dottedNotes = dottedButtons.at(seqID)->getToggleState();
-			bool triplets = tripletsButtons.at(seqID)->getToggleState();
-
-
-			audioProcessor.createRythm(seqID, steps, events, rotation, velocity, gate, noteNumber,
-				figureStep, direction, reverse, pingPong, dottedNotes, triplets);
-
-			// disable those components
-			enableComponents(seqID);
-		}
-	}
-	else if (componentIDWithoutID == "REVERSE_BUTTON") {
-		if (button->getToggleState() == true) {
-
-			// deseleccionamos el pingPongButton
-			pingPongButtons.at(seqID)->setToggleState(false, true);
-
-			// reverse the direction of the rythm
-			button->setButtonText("Reverse\nOn");
-			audioProcessor.setReverseDirection(seqID, true);
-		}
-		else {
-			// set the right direction
-			button->setButtonText("Reverse\nOff");
-			audioProcessor.setReverseDirection(seqID, false);
-		}
-	}
-	else if (componentIDWithoutID == "PING_PONG_BUTTON") {
-		if (button->getToggleState() == true) {
-
-			// deseleccionamos el reverseButton
-			reverseButtons.at(seqID)->setToggleState(false, true);
-
-			button->setButtonText("Ping Pong\nOn");
-			audioProcessor.setNewPingPong(seqID, true);
-		}
-		else {
-			// set the right direction
-			button->setButtonText("Ping Pong\nOff");
-			audioProcessor.setNewPingPong(seqID, false);
-
-		}
-	}
-	else if (componentIDWithoutID == "SYNC_BUTTON") {
-		audioProcessor.synchronizeAll();
-	}
-	else if (componentIDWithoutID == "DOTTED_BUTTON") {
-		if (button->getToggleState() == true) {
-
-			// deseleccionamos el tripletsButton
-			tripletsButtons.at(seqID)->setToggleState(false, true);
-
-			button->setButtonText("Dotted\nOn");
-			audioProcessor.setDottedNotes(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
-		}
-		else {
-
-			button->setButtonText("Dotted\nOff");
-			audioProcessor.setDottedNotes(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
-
-		}
-	}
-	else if (componentIDWithoutID == "TRIPLETS_BUTTON") {
-		if (button->getToggleState() == true) {
-
-			// deseleccionamos el dottedNotesButton
-			dottedButtons.at(seqID)->setToggleState(false, true);
-
-			button->setButtonText("Triplets\nOn");
-			audioProcessor.setTriplets(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
-		}
-		else {
-			button->setButtonText("Triplets\nOff");
-			audioProcessor.setTriplets(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
-
-		}
-	}
-	else if (componentIDWithoutID == "SAVE_PRESET_BUTTON") {
+	if (componentIDWithoutID == "SAVE_PRESET_BUTTON") {
 		if (presetComboBox->getSelectedId() == DEFAULT_PRESET_COMBOBOX) {
 			juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
 				"Select Preset",
@@ -642,6 +553,131 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 		else
 			audioProcessor.loadPreset(presetComboBox->getSelectedId());
 	}
+	else if (componentIDWithoutID == "ON_OFF_BUTTON") {
+		if (button->getToggleState() == false && audioProcessor.getEuclideanRhythms().count(seqID)) {
+			
+			// change button text
+			button->setButtonText("Off");
+			// delete rythm
+			audioProcessor.deleteRythm(seqID);
+			// disable those components
+			disableComponents(seqID);
+		}
+		else {
+
+			if (audioProcessor.getEuclideanRhythms().count(seqID))
+				return;
+
+			// change button text
+			button->setButtonText("On");
+
+			// create rythm
+			int steps = stepsSliders.at(seqID)->getValue();
+			int events = eventsSliders.at(seqID)->getValue();
+			int rotation = rotationSliders.at(seqID)->getValue();
+			int velocity = velocitySliders.at(seqID)->getValue();
+			int gate = gateSliders.at(seqID)->getValue();
+			int noteNumber = noteNumberComboBoxes.at(seqID)->getSelectedId();
+			float figureStep = stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV;
+			int channel = channelComboBoxes.at(seqID)->getSelectedId();
+			bool direction = true;
+			bool reverse = reverseButtons.at(seqID)->getToggleState();
+			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
+			bool dottedNotes = dottedButtons.at(seqID)->getToggleState();
+			bool triplets = tripletsButtons.at(seqID)->getToggleState();
+
+
+			audioProcessor.createRythm(seqID, steps, events, rotation, velocity, gate, noteNumber,
+				figureStep, direction, reverse, pingPong, dottedNotes, triplets, channel);
+
+			// disable those components
+			enableComponents(seqID);
+		}
+	}
+	
+	if (!audioProcessor.getEuclideanRhythms().count(seqID))
+		return;
+	
+	if (componentIDWithoutID == "REVERSE_BUTTON") {
+		
+
+		if (button->getToggleState()) {
+
+			// deseleccionamos el pingPongButton
+			if (pingPongButtons.count(seqID))
+				pingPongButtons.at(seqID)->setToggleState(false, juce::NotificationType::dontSendNotification);
+
+			// reverse the direction of the rythm
+			button->setButtonText("Reverse\nOn");
+			audioProcessor.setReverseDirection(seqID, true);
+
+		}
+		else{
+
+			// set the right direction
+			button->setButtonText("Reverse\nOff");
+			//button->setToggleState(true, juce::NotificationType::dontSendNotification);
+			audioProcessor.setReverseDirection(seqID, false);
+		}
+	}
+	else if (componentIDWithoutID == "PING_PONG_BUTTON") {
+		
+		if (button->getToggleState()) {
+
+			// deseleccionamos el reverseButton
+			if(reverseButtons.count(seqID))
+				reverseButtons.at(seqID)->setToggleState(false, juce::NotificationType::dontSendNotification);
+
+			button->setButtonText("Ping Pong\nOn");
+			audioProcessor.setNewPingPong(seqID, true);
+		}
+		else {
+
+			// set the right direction
+			button->setButtonText("Ping Pong\nOff");
+			audioProcessor.setNewPingPong(seqID, false);
+
+		}
+	}
+	else if (componentIDWithoutID == "DOTTED_BUTTON") {
+		
+		if (button->getToggleState() == true) {
+
+			// deseleccionamos el tripletsButton
+			if(tripletsButtons.count(seqID))
+				tripletsButtons.at(seqID)->setToggleState(false, true);
+
+			button->setButtonText("Dotted\nOn");
+			audioProcessor.setDottedNotes(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
+		}
+		else {
+
+			button->setButtonText("Dotted\nOff");
+			audioProcessor.setDottedNotes(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
+
+		}
+	}
+	else if (componentIDWithoutID == "TRIPLETS_BUTTON") {
+		
+		if (button->getToggleState() == true) {
+
+			// deseleccionamos el dottedNotesButton
+			if(dottedButtons.count(seqID))
+				dottedButtons.at(seqID)->setToggleState(false, true);
+
+			button->setButtonText("Triplets\nOn");
+			audioProcessor.setTriplets(seqID, true, ((float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV));
+		}
+		else {
+			button->setButtonText("Triplets\nOff");
+			audioProcessor.setTriplets(seqID, false, (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV);
+
+		}
+	}
+	else if (componentIDWithoutID == "SYNC_BUTTON") {
+		audioProcessor.synchronizeAll();
+	}
+	
 
 }
 

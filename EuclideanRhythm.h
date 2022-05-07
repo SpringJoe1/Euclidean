@@ -33,7 +33,7 @@ public:
     EuclideanRhythm(float rate, int bpmParam, int steps, int events, int rotationParam = 0,
         int velocityParam = 127, int gateParam = 100, int noteNumberParam = 72,
         int figureStepParam = 1, bool direction = true, bool reverse = false, bool pingPong = false,
-        bool dottedNotesParam = false, bool tripletsParam = false);
+        bool dottedNotesParam = false, bool tripletsParam = false, int channel = 1);
     ~EuclideanRhythm() override;
 
     void paint (juce::Graphics&) override;
@@ -74,7 +74,7 @@ public:
     void set_pingPong(bool value);
     void set_dottedNotes(bool value);
     void set_triplets(bool value);
-    void set_channel(int newChannel);
+    void set_channel(int vaule);
 
     // Atributos auxiliares para realizar el processBlock() 
     int getIndex();
@@ -114,11 +114,13 @@ public:
     //==============================================================================
     // TODO -- Atributos publicos (cambiar a private)
     //==============================================================================
+    
     // map con el currentNoteNumber y num de samples que lleva sonando (parar en >= noteDuration)
     map<int, int> notesDurationMap;
-    //map con el current noteNumber y num de canal de midi al que se mandó
-    map<int, int> notesChannelMap;
     vector<int> notesToDeleteFromMap;
+
+    // map con el current noteNumber y num de channel al que se mando
+    map<int, int> notesChannelMap;
 
 private:
 

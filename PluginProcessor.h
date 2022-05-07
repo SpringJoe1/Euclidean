@@ -84,7 +84,7 @@ public:
     void setNewChannel(int value, int seqID);
     void createRythm(int id, int steps, int events, int rotation, int velocity, int gate,
         int noteNumber, float figureStep, bool direction, bool reverse, bool pingPong,
-        bool dottedNotesParam, bool tripletsParam);
+        bool dottedNotesParam, bool tripletsParam, int channel);
     void deleteRythm(int id);
     void setReverseDirection(int id, bool reverse);
     void setNewPingPong(int id, bool random);
@@ -114,7 +114,8 @@ private:
 
 
     //==============================================================================
-    
+    map<int, bool> shiets;
+
     // mapa de <ID, puntero a EuclideanRhythmComponent> donde estarán los 4 
     map<int, EuclideanRhythm*> euclideanRhythms;
     
@@ -124,8 +125,6 @@ private:
     int numSamples;
     int bpm;
     float rate;
-    int midiChannel = 10;
-
 
     // to get information from the application 
     juce::AudioPlayHead* playHead;

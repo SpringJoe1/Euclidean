@@ -11,6 +11,21 @@
 
 //==============================================================================
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 juce::String getMidiMessageDescription(const juce::MidiMessage& m)
 {
     if (m.isNoteOn())           return "Note on " + juce::MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3);
@@ -54,6 +69,28 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
 
     return(timecode + "  -  " + getMidiMessageDescription(message));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 EuclideanSequencerAudioProcessor::EuclideanSequencerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -196,15 +233,13 @@ void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& bu
         processSequencer(midiMessages, itr->second, itr->first);
     }
 
-    //TODO ver que pasa con midichannel
-    //evitamos que queden notas residuales
-    //posibles soluciones:
-    //1) metemos el midiBuffer como campo a cada ritmo y en el destructor mandar noteoff de todo lo que hay
-    //2) cambiar on/off: see lee el valor del boton en process block en vez de con un listener y ahi se hace notes off de todo
-    if (euclideanRhythms.empty()) {
-        auto m = juce::MidiMessage::allNotesOff(midiChannel);
-        midiMessages.addEvent(m,0);
-    }
+    // TODO - controlar notas residuales
+
+    //// evitamos que queden notas residuales
+    //if (euclideanRhythms.empty()) {
+    //    auto m = juce::MidiMessage::allNotesOff(midiChannel);
+    //    midiMessages.addEvent(m,0);
+    //}
     //processSequencer(midiMessages, euclideanRhythms.at(0), 0);
 }
 
@@ -315,23 +350,21 @@ void EuclideanSequencerAudioProcessor::setNewChannel(int value, int seqID) {
 
 void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events, int rotation,
     int velocity, int gate, int noteNumber, float figureStep, bool directionParam, bool reverseParam,
-    bool pingPongParam, bool dottedNotesParam, bool tripletsParam) {
+    bool pingPongParam, bool dottedNotesParam, bool tripletsParam, int channel) {
 
     euclideanRhythms.insert({
         id,
         new EuclideanRhythm(rate, bpm, steps, events, rotation, velocity, gate, noteNumber,
-        figureStep, directionParam, reverseParam, pingPongParam, dottedNotesParam, tripletsParam)
+        figureStep, directionParam, reverseParam, pingPongParam, dottedNotesParam, tripletsParam,
+        channel)
         });
 }
 
 void EuclideanSequencerAudioProcessor::deleteRythm(int id) {
     
-    for (auto itr = euclideanRhythms.at(id)->notesDurationMap.begin(); itr != euclideanRhythms.at(id)->notesDurationMap.end(); ++itr) {
+    for (auto itr = euclideanRhythms.at(id)->notesDurationMap.begin(); itr != euclideanRhythms.at(id)->notesDurationMap.end(); ++itr)
         notesOn[itr->first]--;
-    }
-        
     
-    euclideanRhythms.at(id)->notesDurationMap.clear();
     euclideanRhythms.at(id)->notesDurationMap.clear();
     euclideanRhythms.at(id)->notesToDeleteFromMap.clear();
     euclideanRhythms.erase(id);
@@ -348,7 +381,6 @@ void EuclideanSequencerAudioProcessor::setReverseDirection(int seqID, bool rever
     }
 }
 
-//Igual hacer que pinponee en el beat en el que se activa
 void EuclideanSequencerAudioProcessor::setNewPingPong(int id, bool value) {
     if (euclideanRhythms.count(id)) {
         euclideanRhythms.at(id)->set_pingPong(value);
@@ -613,7 +645,7 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
                 " direction " << (int)euclideanRhythm->get_direction() <<
                 " currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
                 " of " << euclideanRhythm->getNumSamplesPerBar() <<
-                " in midi channel " << euclideanRhythm->get_channel());
+                " midi channel " << euclideanRhythm->get_channel());
 
             // mapa de notas global
             notesOn[itr->first]--;

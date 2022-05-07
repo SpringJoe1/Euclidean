@@ -28,7 +28,8 @@ EuclideanRhythm::EuclideanRhythm()
 
 EuclideanRhythm::EuclideanRhythm(float rate, int bpmParam, int steps, int events,
     int rotationParam, int velocityParam, int gateParam, int noteNumberParam, int figureStepParam, 
-    bool directionParam, bool reverseParam, bool pingPongParam, bool dottedNotesParam, bool tripletsParam) {
+    bool directionParam, bool reverseParam, bool pingPongParam, bool dottedNotesParam, bool tripletsParam,
+    int channel) {
 
     this->sampleRate = rate;
     this->bpm = bpmParam;
@@ -42,6 +43,7 @@ EuclideanRhythm::EuclideanRhythm(float rate, int bpmParam, int steps, int events
     this->_pingPong = pingPongParam;
     this->_dottedNotes = dottedNotesParam;
     this->_triplets = tripletsParam;
+    this->_channel = channel;
     convertBPMToTime();
     this->timeStep = 0;
     this->timeNote = 0;
@@ -49,15 +51,12 @@ EuclideanRhythm::EuclideanRhythm(float rate, int bpmParam, int steps, int events
     this->_noteNumber = noteNumberParam;   // C4
     this->numSamplesPerBar = 0;
     this->currentSampleInBar = 0;
-    //por default usamos el canal midi 1
-    this->_channel = 1;
-    
+
     set_euclideanRhythm(steps, events);
 }
 
 EuclideanRhythm::~EuclideanRhythm()
 {
-    //cerrar todas las notas que estne sonando
 }
 
 void EuclideanRhythm::paint (juce::Graphics& g)
@@ -215,8 +214,8 @@ void EuclideanRhythm::set_triplets(bool value) {
     this->_triplets = value;
 }
 
-void EuclideanRhythm::set_channel(int channel) {
-    this->_channel = channel;
+void EuclideanRhythm::set_channel(int value) {
+    this->_channel = value;
 }
 
 // Atributos auxiliares para realizar el processBlock() 

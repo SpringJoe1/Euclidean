@@ -69,6 +69,9 @@ private:
     juce::TextButton* loadPresetButton;
     juce::ComboBox* presetComboBox;
 
+    // TODO -- ELIMINAR
+    map <int, juce::TextButton*> shietButtons;
+
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
     map<int, juce::TextButton*> pingPongButtons;
