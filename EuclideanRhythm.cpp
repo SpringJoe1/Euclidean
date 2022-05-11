@@ -27,7 +27,7 @@ EuclideanRhythm::EuclideanRhythm()
 }
 
 EuclideanRhythm::EuclideanRhythm(float rate, int bpmParam, int steps, int events,
-    int rotationParam, int velocityParam, int gateParam, int noteNumberParam, int figureStepParam, 
+    int rotationParam, int velocityParam, int gateParam, int noteNumberParam, float figureStepParam, 
     bool directionParam, bool reverseParam, bool pingPongParam, bool dottedNotesParam, bool tripletsParam,
     int channel) {
 

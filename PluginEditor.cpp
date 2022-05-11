@@ -17,6 +17,9 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	// 60 Hz
 	//Timer::startTimer(60.0f);
 
+	indexshiet = 0;
+
+
 	for (int i = 0; i < NUM_TOTAL_ETAPAS; i++) {
 
 
@@ -79,7 +82,6 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		// reverse direction button
 		reverseButtons.insert({ i, new juce::TextButton{"reverseButton"} });
 		reverseButtons.at(i)->setButtonText("Reverse\nOff");
-		reverseButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*reverseButtons.at(i), "REVERSE_BUTTON" + to_string(i));
 
 		reverseButtonAttachments.insert({ i, nullptr });
@@ -88,7 +90,6 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		// ping-pong direction button
 		pingPongButtons.insert({ i, new juce::TextButton{"pingPongButton"} });
 		pingPongButtons.at(i)->setButtonText("Ping Pong\nOff");
-		pingPongButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*pingPongButtons.at(i), "PING_PONG_BUTTON" + to_string(i));
 
 		pingPongButtonAttachments.insert({ i, nullptr });
@@ -97,7 +98,6 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		// triplets button
 		tripletsButtons.insert({ i, new juce::TextButton{"tripletsButton"} });
 		tripletsButtons.at(i)->setButtonText("Triplets\nOff");
-		tripletsButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*tripletsButtons.at(i), "TRIPLETS_BUTTON" + to_string(i));
 
 		tripletsButtonAttachments.insert({ i, nullptr });
@@ -106,12 +106,26 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 		// dotted button
 		dottedButtons.insert({ i, new juce::TextButton{"dottedButton"} });
 		dottedButtons.at(i)->setButtonText("Dotted\nOff");
-		dottedButtons.at(i)->setEnabled(false);
 		setTextButtonParams(*dottedButtons.at(i), "DOTTED_BUTTON" + to_string(i));
 
 		dottedButtonAttachments.insert({ i, nullptr });
 		dottedButtonAttachments.at(i).reset(new ButtonAttachment(audioProcessor.apvts, "DOTTED_BUTTON" + to_string(i), (*dottedButtons.at(i))));
 
+		if (!audioProcessor.getEuclideanRhythms().count(i)) {
+			
+			stepsSliders.at(i)->setEnabled(false);
+			eventsSliders.at(i)->setEnabled(false);
+			rotationSliders.at(i)->setEnabled(false);
+			velocitySliders.at(i)->setEnabled(false);
+			gateSliders.at(i)->setEnabled(false);
+			noteNumberComboBoxes.at(i)->setEnabled(false);
+			stepDurationComboBoxes.at(i)->setEnabled(false);
+			channelComboBoxes.at(i)->setEnabled(false);
+			reverseButtons.at(i)->setEnabled(false);
+			pingPongButtons.at(i)->setEnabled(false);
+			dottedButtons.at(i)->setEnabled(false);
+			tripletsButtons.at(i)->setEnabled(false);
+		}
 
 	}
 	
@@ -134,15 +148,6 @@ EuclideanSequencerAudioProcessorEditor::EuclideanSequencerAudioProcessorEditor(E
 	presetComboBox = new juce::ComboBox{ "presetComboBox" };
 	setPresetComboBoxParams(*presetComboBox, "PRESET_COMBOBOX4");
 
-	// shiet button
-	shietButtons.insert({ 0, new juce::TextButton{"shietButton"} });
-	shietButtons.at(0)->setButtonText("Shiet\nOff");
-	setTextButtonParams(*shietButtons.at(0), "SHIET_BUTTON" + to_string(0));
-
-	shietButtonAttachments.insert({ 0, nullptr });
-	shietButtonAttachments.at(0).reset(new ButtonAttachment(audioProcessor.apvts, "SHIET_BUTTON" + to_string(0), (*shietButtons.at(0))));
-
-	
 	setSize(1200, 600);
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
@@ -236,7 +241,6 @@ void EuclideanSequencerAudioProcessorEditor::resized()
 	savePresetButton->setBounds(syncButton->getRight() + padding, componentStartY, componentWidth, componentHeight/2);
 	loadPresetButton->setBounds(syncButton->getRight() + padding, componentStartY + (componentHeight/2), componentWidth, componentHeight / 2);
 	presetComboBox->setBounds(savePresetButton->getRight() + padding, componentStartY, componentWidth, componentHeight);
-	shietButtons.at(0)->setBounds(presetComboBox->getRight() + padding, componentStartY, componentWidth, componentHeight);
 
 }
 
@@ -259,7 +263,6 @@ void EuclideanSequencerAudioProcessorEditor::setSliderParams(juce::Slider& slide
 	slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
 	slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 25);
 	addAndMakeVisible(slider);
-	slider.setEnabled(false);
 }
 
 void EuclideanSequencerAudioProcessorEditor::setNoteNumberComboBoxParams(juce::ComboBox& comboBox, string id) {
@@ -360,7 +363,6 @@ void EuclideanSequencerAudioProcessorEditor::setNoteNumberComboBoxParams(juce::C
 	comboBox.setSelectedId(72); //C4
 	comboBox.setJustificationType(juce::Justification::centred);
 	addAndMakeVisible(comboBox);
-	comboBox.setEnabled(false);
 	comboBox.addListener(this);
 }
 
@@ -386,7 +388,6 @@ void EuclideanSequencerAudioProcessorEditor::setDurationComboBoxParams(juce::Com
 	comboBox.setSelectedId(1 * CONST_DURATION_TIME_CONV); // negras 
 	comboBox.setJustificationType(juce::Justification::centred);
 	addAndMakeVisible(comboBox);
-	comboBox.setEnabled(false);
 	comboBox.addListener(this);
 }
 
@@ -438,7 +439,6 @@ void EuclideanSequencerAudioProcessorEditor::setChannelComboBoxParams(juce::Comb
 	comboBox.setSelectedId(1);
 	comboBox.setJustificationType(juce::Justification::centred);
 	addAndMakeVisible(comboBox);
-	comboBox.setEnabled(false);
 	comboBox.addListener(this);
 }
 
@@ -506,8 +506,8 @@ void EuclideanSequencerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* com
 	if (componentIDWithoutID == "NOTE_NUMBER_COMBOBOX")
 		audioProcessor.setNewNoteNumber(comboBoxThatHasChanged->getSelectedId(), seqID);
 	// Si es el caso del combobox de STEP_DURATION_COMBOBOX
-	//else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
-	//	audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
+	else if (componentIDWithoutID == "STEP_DURATION_COMBOBOX")
+		audioProcessor.setNewStepFigure((float)comboBoxThatHasChanged->getSelectedId() / CONST_DURATION_TIME_CONV, seqID);
 	else if (componentIDWithoutID == "CHANNEL_COMBOBOX")
 		audioProcessor.setNewChannel((float)comboBoxThatHasChanged->getSelectedId(), seqID);
 
@@ -554,22 +554,27 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 			audioProcessor.loadPreset(presetComboBox->getSelectedId());
 	}
 	else if (componentIDWithoutID == "ON_OFF_BUTTON") {
+
 		if (button->getToggleState() == false && audioProcessor.getEuclideanRhythms().count(seqID)) {
-			
+
 			// change button text
 			button->setButtonText("Off");
-			// delete rythm
-			audioProcessor.deleteRythm(seqID);
 			// disable those components
 			disableComponents(seqID);
+			// delete rythm
+			audioProcessor.deleteRythm(seqID);
+
 		}
 		else {
 
-			if (audioProcessor.getEuclideanRhythms().count(seqID))
+			if (audioProcessor.getEuclideanRhythms().count(seqID)) {
 				return;
+			}
 
 			// change button text
 			button->setButtonText("On");
+			//enable those components
+			enableComponents(seqID);
 
 			// create rythm
 			int steps = stepsSliders.at(seqID)->getValue();
@@ -578,25 +583,28 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 			int velocity = velocitySliders.at(seqID)->getValue();
 			int gate = gateSliders.at(seqID)->getValue();
 			int noteNumber = noteNumberComboBoxes.at(seqID)->getSelectedId();
-			float figureStep = stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV;
+			float figureStep = (float)stepDurationComboBoxes.at(seqID)->getSelectedId() / CONST_DURATION_TIME_CONV;
 			int channel = channelComboBoxes.at(seqID)->getSelectedId();
 			bool direction = true;
 			bool reverse = reverseButtons.at(seqID)->getToggleState();
+			DBG("STATE REVERSE  "<< (int)reverse);
 			bool pingPong = pingPongButtons.at(seqID)->getToggleState();
 			bool dottedNotes = dottedButtons.at(seqID)->getToggleState();
 			bool triplets = tripletsButtons.at(seqID)->getToggleState();
 
-
 			audioProcessor.createRythm(seqID, steps, events, rotation, velocity, gate, noteNumber,
 				figureStep, direction, reverse, pingPong, dottedNotes, triplets, channel);
 
-			// disable those components
-			enableComponents(seqID);
 		}
+	}
+	else if (componentIDWithoutID == "SYNC_BUTTON") {
+		if(!audioProcessor.getEuclideanRhythms().empty())
+			audioProcessor.synchronizeAll();
 	}
 	
 	if (!audioProcessor.getEuclideanRhythms().count(seqID))
 		return;
+
 	
 	if (componentIDWithoutID == "REVERSE_BUTTON") {
 		
@@ -605,7 +613,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 			// deseleccionamos el pingPongButton
 			if (pingPongButtons.count(seqID))
-				pingPongButtons.at(seqID)->setToggleState(false, juce::NotificationType::dontSendNotification);
+				pingPongButtons.at(seqID)->setToggleState(false, true);
 
 			// reverse the direction of the rythm
 			button->setButtonText("Reverse\nOn");
@@ -613,7 +621,6 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 		}
 		else{
-
 			// set the right direction
 			button->setButtonText("Reverse\nOff");
 			//button->setToggleState(true, juce::NotificationType::dontSendNotification);
@@ -626,7 +633,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 			// deseleccionamos el reverseButton
 			if(reverseButtons.count(seqID))
-				reverseButtons.at(seqID)->setToggleState(false, juce::NotificationType::dontSendNotification);
+				reverseButtons.at(seqID)->setToggleState(false, true);
 
 			button->setButtonText("Ping Pong\nOn");
 			audioProcessor.setNewPingPong(seqID, true);
@@ -674,9 +681,6 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 		}
 	}
-	else if (componentIDWithoutID == "SYNC_BUTTON") {
-		audioProcessor.synchronizeAll();
-	}
 	
 
 }
@@ -685,6 +689,7 @@ void EuclideanSequencerAudioProcessorEditor::buttonClicked(juce::Button* button)
 
 
 void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int seqID, float innerCircleProp) {
+
 
 	// dimensions
 	float startX = 50 * seqID;
@@ -717,6 +722,11 @@ void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int 
 	// anchura de cada step en radianes
 	float stepSize = 2 * juce::MathConstants<float>::pi / numSteps;
 
+	bool same = false;
+
+	if (indexshiet != audioProcessor.getEuclideanRhythms().at(seqID)->getIndex())
+		indexshiet = (indexshiet + 1) % audioProcessor.getEuclideanRhythms().at(seqID)->get_steps();
+
 	// loop para pintar los steps
 	for (int i = 0; i < numSteps; i++) {
 		
@@ -744,8 +754,12 @@ void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int 
 		// chequear funcion sleep(miliseconds) en funcion de la duracion de la nota
 		
 		// nota que está sonando
-		if (audioProcessor.getEuclideanRhythms().at(seqID)->getIndex() == i)
+		if (indexshiet == i) {
 			g.setColour(juce::Colours::white);
+			auto millisec_since_epoch = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+
+			DBG("DRAW TIME " << millisec_since_epoch - 1652283000000);
+		}
 		
 
 		g.fillPath(pieSegments);
@@ -754,3 +768,5 @@ void EuclideanSequencerAudioProcessorEditor::paintRhythm(juce::Graphics& g, int 
 	}
 	
 }
+
+

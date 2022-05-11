@@ -63,14 +63,12 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     EuclideanSequencerAudioProcessor& audioProcessor;
+    int indexshiet;
 
     juce::TextButton* syncButton;
     juce::TextButton* savePresetButton;
     juce::TextButton* loadPresetButton;
     juce::ComboBox* presetComboBox;
-
-    // TODO -- ELIMINAR
-    map <int, juce::TextButton*> shietButtons;
 
     map<int, juce::TextButton*> onOffButtons;
     map<int, juce::TextButton*> reverseButtons;
@@ -104,8 +102,6 @@ private:
     map<int, unique_ptr<ButtonAttachment>> pingPongButtonAttachments;
     map<int, unique_ptr<ButtonAttachment>> tripletsButtonAttachments;
     map<int, unique_ptr<ButtonAttachment>> dottedButtonAttachments;
-
-    map<int, unique_ptr<ButtonAttachment>> shietButtonAttachments;
 
     map<int, unique_ptr<ComboBoxAttachment>> noteNumberComboBoxAttachments;
     map<int, unique_ptr<ComboBoxAttachment>> stepDurationComboBoxAttachments;

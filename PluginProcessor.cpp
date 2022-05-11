@@ -67,6 +67,7 @@ juce::String getMessageInfo(const juce::MidiMessage& message)
         millis);
 
 
+
     return(timecode + "  -  " + getMidiMessageDescription(message));
 }
 
@@ -223,7 +224,6 @@ bool EuclideanSequencerAudioProcessor::isBusesLayoutSupported(const BusesLayout&
 
 void EuclideanSequencerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-
     // however we use the buffer to get timing information
     numSamples = buffer.getNumSamples();
     bpm = getBPM();
@@ -357,7 +357,13 @@ void EuclideanSequencerAudioProcessor::createRythm(int id, int steps, int events
         new EuclideanRhythm(rate, bpm, steps, events, rotation, velocity, gate, noteNumber,
         figureStep, directionParam, reverseParam, pingPongParam, dottedNotesParam, tripletsParam,
         channel)
-        });
+    });
+
+    // set some special atributes
+    setReverseDirection(id, reverseParam);
+    setNewPingPong(id, pingPongParam);
+    setDottedNotes(id, dottedNotesParam, figureStep);
+    setTriplets(id, tripletsParam, figureStep);
 }
 
 void EuclideanSequencerAudioProcessor::deleteRythm(int id) {
@@ -581,7 +587,22 @@ int EuclideanSequencerAudioProcessor::getIndexFromCurrentSample(EuclideanRhythm*
 //==============================================================================
 
 void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMessages, EuclideanRhythm* euclideanRhythm, int ID) {
+  
+    auto millisec_since_epoch = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 
+    //    int main()
+    //{
+    //    auto start = std::chrono::system_clock::now();
+    //    // Some computation here
+    //    auto end = std::chrono::system_clock::now();
+
+    //    std::chrono::duration<double> elapsed_seconds = end - start;
+    //    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+
+    //    std::cout << "finished computation at " << std::ctime(&end_time)
+    //        << "elapsed time: " << elapsed_seconds.count() << "s" <<
+    //        << std::endl;
+    //}
 
 
     int gate = *apvts.getRawParameterValue("GATE" + to_string(ID));
@@ -625,6 +646,9 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
 
     // a partir del current sample que estamos procesando, sacamos el index del ritmo
     euclideanRhythm->setIndex(getIndexFromCurrentSample(euclideanRhythm));
+    auto millisec_since_epoch2 = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+
+    //DBG("INDEX TIME " << millisec_since_epoch2 - 1652283000000);
 
     // comprobamos el tiempo que lleva durando cada nota
     // si ha excedido >= noteDuration se manda un noteOff de esa nota
@@ -692,7 +716,9 @@ void EuclideanSequencerAudioProcessor::processSequencer(juce::MidiBuffer& midiMe
                 " currentSample " << euclideanRhythm->getCurrentSampleInBar() <<
                 " of " << euclideanRhythm->getNumSamplesPerBar());
 
-            midiMessages.addEvent(message, offset);
+            DBG("offset en ms " << (offset / rate) * 1000);
+            DBG("milisecinepoch " << millisec_since_epoch - 1652283000000);
+            DBG("NOTE ON TIME " << (millisec_since_epoch + ((offset / rate) * 1000)) - 1652283000000);
 
             notesOn[note]++;
             euclideanRhythm->notesDurationMap.insert({ note, numSamples - offset });

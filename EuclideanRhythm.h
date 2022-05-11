@@ -32,7 +32,7 @@ public:
     EuclideanRhythm();
     EuclideanRhythm(float rate, int bpmParam, int steps, int events, int rotationParam = 0,
         int velocityParam = 127, int gateParam = 100, int noteNumberParam = 72,
-        int figureStepParam = 1, bool direction = true, bool reverse = false, bool pingPong = false,
+        float figureStepParam = 1.0f, bool direction = true, bool reverse = false, bool pingPong = false,
         bool dottedNotesParam = false, bool tripletsParam = false, int channel = 1);
     ~EuclideanRhythm() override;
 

@@ -103,7 +103,6 @@ private:
     //==============================================================================
 
     void initNotesOnMap();
-    //void convertBPMToTime(EuclideanRhythmComponent* e);
     int getBPM();
     int getCurrentSampleUpdated(int numSamplesPerBar, int newNumSamplesPerBar, int currentSamplesInBar);
     int getIndexFromCurrentSample(EuclideanRhythm* e);
@@ -114,7 +113,6 @@ private:
 
 
     //==============================================================================
-    map<int, bool> shiets;
 
     // mapa de <ID, puntero a EuclideanRhythmComponent> donde estarán los 4 
     map<int, EuclideanRhythm*> euclideanRhythms;
